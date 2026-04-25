@@ -3,17 +3,6 @@
     "abort": "Aktion abbrechen",
     "confirmation": "Bist du sicher, dass die Aktion durchgeführt werden soll?"
   },
-  "call": {
-    "active": "Anruf läuft",
-    "connecting": "Anruf wird verbunden",
-    "end": "Anruf beenden",
-    "ending": "Anruf wird beendet",
-    "mute_microphone": "Mikrofon stummschalten",
-    "mute_speaker": "Lautsprecher stummschalten",
-    "start": "Anrufen",
-    "unmute_microphone": "Mikrofon-Stummschaltung aufheben",
-    "unmute_speaker": "Lautsprecher-Stummschaltung aufheben"
-  },
   "common": {
     "advanced_camera_card": "Erweiterte Kamera-Karte",
     "advanced_camera_card_description": "Eine Erweiterte Kamera-Karte",
@@ -21,19 +10,6 @@
   },
   "config": {
     "cameras": {
-      "call_mode": {
-        "auto_enable_microphone": "Mikrofon beim Start des Anrufs automatisch aktivieren",
-        "auto_enable_speaker": "Lautsprecher beim Start des Anrufs automatisch aktivieren",
-        "editor_label": "Anrufmodus",
-        "enabled": "Anrufmodus aktivieren",
-        "end_call_on_view_change": "Anruf beenden, wenn ein Ansichtswechsel versucht wird",
-        "hide_menu_during_call": "Anzeige des Schaltflächenmenüs während eines Anrufs verhindern",
-        "lock_navigation": "Navigation während eines Anrufs sperren",
-        "resume_normal_stream_on_end": "Nach dem Anruf zum normalen Stream zurückkehren",
-        "show_in_menu": "Anrufknopf im Menü anzeigen",
-        "stream": "Name des Anruf-Streams",
-        "allow_regular_mic_button": "Regulären Mikrofonknopf im Anrufmodus anzeigen"
-      },
       "always_error_if_entity_unavailable": "Nicht verfügbare Entität immer als Fehler behandeln",
       "capabilities": {
         "capabilities": {

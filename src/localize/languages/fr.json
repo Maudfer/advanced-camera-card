@@ -1,33 +1,9 @@
 {
-  "call": {
-    "active": "Appel en cours",
-    "connecting": "Appel en cours de connexion",
-    "end": "Terminer l'appel",
-    "ending": "Fin de l'appel",
-    "mute_microphone": "Couper le microphone",
-    "mute_speaker": "Couper le haut-parleur",
-    "start": "Appeler",
-    "unmute_microphone": "Réactiver le microphone",
-    "unmute_speaker": "Réactiver le haut-parleur"
-  },
   "common": {
     "no_media": "Aucun média à afficher"
   },
   "config": {
     "cameras": {
-      "call_mode": {
-        "auto_enable_microphone": "Activer automatiquement le microphone au démarrage de l'appel",
-        "auto_enable_speaker": "Activer automatiquement le haut-parleur au démarrage de l'appel",
-        "editor_label": "Mode appel",
-        "enabled": "Activer le mode appel",
-        "end_call_on_view_change": "Terminer l'appel si un changement de vue est tenté",
-        "hide_menu_during_call": "Empêcher l'affichage du menu des boutons pendant un appel",
-        "lock_navigation": "Verrouiller la navigation pendant un appel",
-        "resume_normal_stream_on_end": "Reprendre le flux normal à la fin de l'appel",
-        "show_in_menu": "Afficher le bouton d'appel dans le menu",
-        "stream": "Nom du flux d'appel",
-        "allow_regular_mic_button": "Autoriser l'affichage du bouton microphone standard en mode appel"
-      },
       "always_error_if_entity_unavailable": "Toujours afficher les entités indisponibles comme erreur",
       "camera_entity": "Entité caméra",
       "capabilities": {

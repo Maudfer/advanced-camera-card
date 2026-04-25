@@ -3,17 +3,6 @@
     "abort": "Przerwano akcję",
     "confirmation": "Czy na pewno chcesz wykonać tę akcję?"
   },
-  "call": {
-    "active": "Połączenie w toku",
-    "connecting": "Nawiązywanie połączenia",
-    "end": "Zakończ połączenie",
-    "ending": "Kończenie połączenia",
-    "mute_microphone": "Wycisz mikrofon",
-    "mute_speaker": "Wycisz głośnik",
-    "start": "Zadzwoń",
-    "unmute_microphone": "Włącz mikrofon",
-    "unmute_speaker": "Włącz głośnik"
-  },
   "common": {
     "advanced_camera_card": "Advanced Camera Card",
     "advanced_camera_card_description": "Zaawansowana karta kamery",
@@ -22,19 +11,6 @@
   },
   "config": {
     "cameras": {
-      "call_mode": {
-        "auto_enable_microphone": "Automatycznie włącz mikrofon po rozpoczęciu połączenia",
-        "auto_enable_speaker": "Automatycznie włącz głośnik po rozpoczęciu połączenia",
-        "editor_label": "Tryb połączenia",
-        "enabled": "Włącz tryb połączenia",
-        "end_call_on_view_change": "Zakończ połączenie przy próbie zmiany widoku",
-        "hide_menu_during_call": "Zapobiegaj wyświetlaniu menu przycisków podczas połączenia",
-        "lock_navigation": "Zablokuj nawigację podczas połączenia",
-        "resume_normal_stream_on_end": "Przywróć normalny strumień po zakończeniu połączenia",
-        "show_in_menu": "Pokaż przycisk połączenia w menu",
-        "stream": "Nazwa strumienia połączenia",
-        "allow_regular_mic_button": "Pozwól wyświetlać zwykły przycisk mikrofonu w trybie połączenia"
-      },
       "always_error_if_entity_unavailable": "Zawsze traktuj niedostępność encji jako błąd",
       "camera_entity": "Encja kamery",
       "capabilities": {
