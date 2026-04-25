@@ -43,7 +43,7 @@ describe('AdvancedCameraCardLiveCarousel', () => {
     return element;
   };
 
-  it('should disable carousel navigation while call navigation is locked', () => {
+  it('should disable carousel navigation while navigation is locked', () => {
     const element = createElement(true) as unknown as {
       _isCarouselDragEnabled: (
         hasMultipleCameras: boolean,
@@ -56,7 +56,7 @@ describe('AdvancedCameraCardLiveCarousel', () => {
     expect(element._isCarouselWheelScrollingEnabled()).toBe(false);
   });
 
-  it('should allow carousel navigation when call navigation is not locked', () => {
+  it('should allow carousel navigation when navigation is not locked', () => {
     const element = createElement(false) as unknown as {
       _isCarouselDragEnabled: (
         hasMultipleCameras: boolean,

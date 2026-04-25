@@ -15,17 +15,7 @@ describe('config defaults', () => {
       cameras: [{}],
       cameras_global: {
         always_error_if_entity_unavailable: false,
-        call_mode: {
-          enabled: false,
-          auto_enable_microphone: true,
-          auto_enable_speaker: true,
-          allow_regular_mic_button: false,
-          hide_menu_during_call: true,
-          lock_navigation: true,
-          show_in_menu: true,
-          resume_normal_stream_on_end: true,
-          end_call_on_view_change: false,
-        },
+        call: {},
         dependencies: {
           all_cameras: false,
           cameras: [],
@@ -145,8 +135,11 @@ describe('config defaults', () => {
         lazy_load: true,
         lazy_unload: [],
         microphone: {
+          auto_mute: ['call'],
+          auto_unmute: ['call'],
           always_connected: false,
           disconnect_seconds: 90,
+          lock_navigation: true,
           mute_after_microphone_mute_seconds: 60,
         },
         preload: false,
@@ -222,6 +215,7 @@ describe('config defaults', () => {
       },
       menu: {
         alignment: 'left',
+        auto_hide: ['call'],
         button_size: 40,
         buttons: {
           call: {
@@ -880,8 +874,8 @@ describe('config defaults', () => {
   it('should include all conditions', () => {
     const conditions = [
       { condition: 'and', conditions: [{ condition: 'initialized' }] },
-      { condition: 'call_ended' },
-      { condition: 'call_started' },
+      { condition: 'call' },
+      { condition: 'call', state: 'in_call' as const },
       { condition: 'camera', cameras: ['camera.office'] },
       { condition: 'config', paths: ['menu.style'] },
       { condition: 'display_mode', display_mode: 'single' },
@@ -1696,26 +1690,22 @@ it('should strip trailing slashes from go2rtc url', () => {
   expect(config.cameras?.[0].go2rtc.url).toBe('https://my-custom-go2rtc');
 });
 
-it('should require a call mode stream when call mode is enabled', () => {
-  expect(() =>
-    cameraConfigSchema.parse({
-      call_mode: {
-        enabled: true,
-      },
-    }),
-  ).toThrowError('Call mode stream is required when enabled');
-});
-
-it('should allow enabled call mode when a stream is configured', () => {
+it('should allow call configuration without a stream', () => {
   expect(
     cameraConfigSchema.parse({
-      call_mode: {
-        enabled: true,
+      call: {},
+    }).call,
+  ).toEqual({});
+});
+
+it('should allow a call stream when configured', () => {
+  expect(
+    cameraConfigSchema.parse({
+      call: {
         stream: 'doorbell',
       },
-    }).call_mode,
+    }).call,
   ).toMatchObject({
-    enabled: true,
     stream: 'doorbell',
   });
 });

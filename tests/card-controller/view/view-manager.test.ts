@@ -166,14 +166,18 @@ describe('should not set view without cameras being initialized', () => {
   });
 });
 
-describe('should respect call navigation lock', () => {
+describe('should respect microphone navigation lock', () => {
   it('should ignore view requests while locked', () => {
     const factory = mock<ViewFactory>();
     factory.getViewDefault.mockReturnValue(createView({ camera: 'camera-1' }));
     factory.getViewByParameters.mockReturnValue(createView({ camera: 'camera-2' }));
 
     const api = createInitializedCardAPI();
-    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+    vi.mocked(api.getMicrophoneManager().getState).mockReturnValue({
+      connected: true,
+      muted: false,
+      forbidden: false,
+    });
 
     const manager = new ViewManager(api, { viewFactory: factory });
     manager.setViewDefault();
@@ -187,7 +191,11 @@ describe('should respect call navigation lock', () => {
     factory.getViewByParameters.mockReturnValue(createView({ camera: 'camera-2' }));
 
     const api = createInitializedCardAPI();
-    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+    vi.mocked(api.getMicrophoneManager().getState).mockReturnValue({
+      connected: true,
+      muted: false,
+      forbidden: false,
+    });
 
     const manager = new ViewManager(api, { viewFactory: factory });
     manager.setViewByParameters({ camera: 'camera-2', ignoreNavigationLock: true });
@@ -223,20 +231,27 @@ describe('should respect call navigation lock', () => {
     );
 
     const api = createInitializedCardAPI();
-    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(false);
+    const microphoneState = {
+      connected: false,
+      muted: true,
+      forbidden: false,
+    };
+    vi.mocked(api.getMicrophoneManager().getState).mockImplementation(
+      () => microphoneState,
+    );
     vi.mocked(api.getCallManager().shouldEndOnViewChange).mockReturnValue(false);
 
     const manager = new ViewManager(api, { viewFactory: factory });
     manager.setViewDefault();
 
-    vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+    microphoneState.connected = true;
+    microphoneState.muted = false;
     vi.mocked(api.getCallManager().shouldEndOnViewChange).mockReturnValue(true);
 
     manager.setViewByParameters({ camera: 'camera-2' });
 
     expect(api.getCallManager().endCall).toBeCalledWith({
       modifyViewContext: false,
-      preserveCallStream: false,
     });
     expect(manager.getView()?.camera).toBe('camera-2');
     expect(manager.getView()?.context?.call).toBeUndefined();
@@ -307,7 +322,11 @@ it('setViewByParametersWithNewQuery should respect navigation lock', async () =>
   viewQueryExecutor.getNewQueryModifiers.mockResolvedValue([]);
 
   const api = createInitializedCardAPI();
-  vi.mocked(api.getCallManager().isNavigationLocked).mockReturnValue(true);
+  vi.mocked(api.getMicrophoneManager().getState).mockReturnValue({
+    connected: true,
+    muted: false,
+    forbidden: false,
+  });
 
   const manager = new ViewManager(api, {
     viewFactory: viewFactory,

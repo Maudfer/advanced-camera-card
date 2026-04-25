@@ -90,32 +90,36 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
   }
 
   function mediaLoadedInfoHandler(ev: CustomEvent<MediaLoadedInfo>): void {
-    const eventPath = ev.composedPath();
+    const slide = ev.currentTarget;
+    if (!(slide instanceof HTMLElement)) {
+      return;
+    }
 
-    // As an optimization, the most recent slide is the one at the end. That's
-    // where most users are spending time, so start the search there.
-    for (const [index, slide] of [...slides.entries()].reverse()) {
-      if (eventPath.includes(slide)) {
-        mediaLoadedInfo[index] = ev.detail;
-        if (index !== emblaApi.selectedScrollSnap()) {
-          ev.stopPropagation();
-        }
-        break;
-      }
+    const index = slides.indexOf(slide as HTMLElement & AdvancedCameraCardMediaLoadedEventTarget);
+    if (index === -1) {
+      return;
+    }
+
+    mediaLoadedInfo[index] = ev.detail;
+    if (index !== emblaApi.selectedScrollSnap()) {
+      ev.stopPropagation();
     }
   }
 
   function mediaUnloadedInfoHandler(ev: CustomEvent): void {
-    const eventPath = ev.composedPath();
+    const slide = ev.currentTarget;
+    if (!(slide instanceof HTMLElement)) {
+      return;
+    }
 
-    for (const [index, slide] of slides.entries()) {
-      if (eventPath.includes(slide)) {
-        delete mediaLoadedInfo[index];
-        if (index !== emblaApi.selectedScrollSnap()) {
-          ev.stopPropagation();
-        }
-        break;
-      }
+    const index = slides.indexOf(slide as HTMLElement & AdvancedCameraCardMediaLoadedEventTarget);
+    if (index === -1) {
+      return;
+    }
+
+    delete mediaLoadedInfo[index];
+    if (index !== emblaApi.selectedScrollSnap()) {
+      ev.stopPropagation();
     }
   }
 

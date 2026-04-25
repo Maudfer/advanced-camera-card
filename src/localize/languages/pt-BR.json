@@ -15,18 +15,9 @@
   },
   "config": {
     "cameras": {
-      "call_mode": {
-        "auto_enable_microphone": "Ativar microfone automaticamente ao iniciar a chamada",
-        "auto_enable_speaker": "Ativar alto-falante automaticamente ao iniciar a chamada",
-        "editor_label": "Modo de chamada",
-        "enabled": "Ativar modo de chamada",
-        "end_call_on_view_change": "Encerrar a chamada se houver tentativa de mudar a visualização",
-        "hide_menu_during_call": "Impedir a exibição do menu de botões durante a chamada",
-        "lock_navigation": "Bloquear navegação durante uma chamada",
-        "resume_normal_stream_on_end": "Retomar a stream normal ao encerrar a chamada",
-        "show_in_menu": "Mostrar botão de chamada no menu",
-        "stream": "Nome da stream de chamada",
-        "allow_regular_mic_button": "Permitir exibir o botão normal do microfone no modo de chamada"
+      "call": {
+        "editor_label": "Chamada",
+        "stream": "Nome da stream de chamada"
       },
       "camera_entity": "Entidade da Câmera",
       "dependencies": {

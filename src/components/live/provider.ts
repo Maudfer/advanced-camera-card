@@ -26,6 +26,7 @@ import {
   MediaPlayer,
   MediaPlayerController,
   MediaPlayerElement,
+  MediaUnloadedInfo,
 } from '../../types.js';
 import { fireAdvancedCameraCardEvent } from '../../utils/fire-advanced-camera-card-event.js';
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
@@ -94,7 +95,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     this._lazyLoadController.addListener((loaded: boolean) => {
       if (!loaded) {
         this._isVideoMediaLoaded = false;
-        dispatchMediaUnloadedEvent(this);
+        dispatchMediaUnloadedEvent(this, { cameraID: this.camera?.getID() });
       }
     });
   }
@@ -133,6 +134,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     this._hasProviderError = true;
 
     const cameraID = this.camera?.getID();
+    dispatchLiveErrorEvent(this, { cameraID });
+
     if (cameraID) {
       fireAdvancedCameraCardEvent(this, 'problem:trigger', {
         key: 'stream_not_loading' as const,
@@ -201,11 +204,18 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
     const intermediateTemplate = html` <advanced-camera-card-media-dimensions-container
       .dimensionsConfig=${config?.dimensions}
       @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+        ev.detail.cameraID ??= this.camera?.getID();
         if (ev.detail.placeholder) {
           ev.stopPropagation();
         } else {
           this._videoMediaShowHandler();
         }
+      }}
+      @advanced-camera-card:media:unloaded=${(ev: CustomEvent<MediaUnloadedInfo>) => {
+        ev.stopPropagation();
+        dispatchMediaUnloadedEvent(this, {
+          cameraID: ev.detail?.cameraID ?? this.camera?.getID(),
+        });
       }}
     >
       ${template}
@@ -255,7 +265,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       (cameraConfig?.camera_entity && cameraConfig.always_error_if_entity_unavailable)
     ) {
       if (!cameraConfig?.camera_entity) {
-        dispatchLiveErrorEvent(this);
+        dispatchLiveErrorEvent(this, { cameraID: this.camera?.getID() });
         return renderMessage({
           message: localize('error.no_live_camera'),
           type: 'error',
@@ -266,7 +276,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
       const stateObj = this.hass.states[cameraConfig.camera_entity];
       if (!stateObj) {
-        dispatchLiveErrorEvent(this);
+        dispatchLiveErrorEvent(this, { cameraID: this.camera?.getID() });
         return renderMessage({
           message: localize('error.live_camera_not_found'),
           type: 'error',
@@ -276,8 +286,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
       }
 
       if (stateObj.state === 'unavailable') {
-        dispatchLiveErrorEvent(this);
-        dispatchMediaUnloadedEvent(this);
+        dispatchLiveErrorEvent(this, { cameraID: this.camera?.getID() });
+        dispatchMediaUnloadedEvent(this, { cameraID: this.camera?.getID() });
         return renderMessage({
           message: `${localize('error.live_camera_unavailable')}${
             this.label ? `: ${this.label}` : ''

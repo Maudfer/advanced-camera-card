@@ -2,11 +2,11 @@ import { CameraConfig } from '../config/schema/cameras';
 import { localize } from '../localize/localize';
 import { MediaLoadedInfo } from '../types';
 import { getResolvedLiveProvider } from '../utils/live-provider';
+import { shouldLockNavigation } from '../utils/microphone';
 import { hasSubstream } from '../utils/substream';
 import { CallViewState } from '../utils/call';
-import { CallClearViewModifier } from './view/modifiers/call-clear';
-import { CallClearStateViewModifier } from './view/modifiers/call-clear-state';
-import { CallSetViewModifier } from './view/modifiers/call-set';
+import { MergeContextViewModifier } from './view/modifiers/merge-context';
+import { RemoveContextViewModifier } from './view/modifiers/remove-context';
 import { CardCallAPI } from './types';
 
 export type CallState = 'idle' | 'connecting_call' | 'in_call' | 'ending_call' | 'error';
@@ -15,26 +15,15 @@ export interface CallSessionState {
   state: CallState;
   camera?: string;
   stream?: string;
-  lockNavigation: boolean;
-  autoEnableMicrophone: boolean;
-  autoEnableSpeaker: boolean;
-  resumeNormalStreamOnEnd: boolean;
-  endCallOnViewChange: boolean;
   message?: string;
 }
 
 const CALL_IDLE_STATE: CallSessionState = {
   state: 'idle',
-  lockNavigation: false,
-  autoEnableMicrophone: true,
-  autoEnableSpeaker: true,
-  resumeNormalStreamOnEnd: true,
-  endCallOnViewChange: false,
 };
 
 export interface CallEndOptions {
   modifyViewContext?: boolean;
-  preserveCallStream?: boolean;
 }
 
 export class CallManager {
@@ -55,20 +44,14 @@ export class CallManager {
   }
 
   public isNavigationLocked(): boolean {
-    return this.isActive() && this._state.lockNavigation;
+    return shouldLockNavigation(
+      this._api.getConfigManager().getConfig(),
+      this._api.getMicrophoneManager().getState(),
+    );
   }
 
   public shouldEndOnViewChange(): boolean {
-    return this.isActive() && this._state.endCallOnViewChange;
-  }
-
-  public shouldHideMenuDuringCall(): boolean {
-    if (!this.isActive() || !this._state.camera) {
-      return false;
-    }
-
-    return !!this._api.getCameraManager().getStore().getCameraConfig(this._state.camera)
-      ?.call_mode?.hide_menu_during_call;
+    return this.isActive();
   }
 
   public reset(): void {
@@ -83,47 +66,38 @@ export class CallManager {
 
     const view = this._api.getViewManager().getView();
     if (!view?.is('live')) {
-      return await this._fail(localize('error.call_mode_live_only'));
+      return await this._fail(localize('error.call_live_only'));
     }
 
     const cameraConfig = this._getActiveCameraConfig();
     if (!cameraConfig) {
-      return await this._fail(localize('error.call_mode_live_only'));
+      return await this._fail(localize('error.call_live_only'));
     }
 
-    const callModeConfig = cameraConfig.call_mode;
-    if (!callModeConfig?.enabled) {
-      return await this._fail(localize('error.call_mode_disabled'));
-    }
-
-    if (!callModeConfig.stream) {
-      return await this._fail(localize('error.call_mode_no_stream'));
+    const callConfig = cameraConfig.call;
+    if (!callConfig?.stream) {
+      return await this._fail(localize('error.call_no_stream'));
     }
 
     if (getResolvedLiveProvider(cameraConfig) !== 'go2rtc') {
-      return await this._fail(localize('error.call_mode_provider_unsupported'));
+      return await this._fail(localize('error.call_provider_unsupported'));
     }
 
     if (hasSubstream(view)) {
-      return await this._fail(localize('error.call_mode_substream_unsupported'));
+      return await this._fail(localize('error.call_substream_unsupported'));
     }
 
     await this._getMediaLoadedInfo(view.camera)?.mediaPlayerController?.mute();
 
     this._setCallContext({
       camera: view.camera,
-      stream: callModeConfig.stream,
+      stream: callConfig.stream,
       state: 'connecting_call',
     });
     this._setState({
       state: 'connecting_call',
       camera: view.camera,
-      stream: callModeConfig.stream,
-      lockNavigation: callModeConfig.lock_navigation,
-      autoEnableMicrophone: callModeConfig.auto_enable_microphone,
-      autoEnableSpeaker: callModeConfig.auto_enable_speaker,
-      resumeNormalStreamOnEnd: callModeConfig.resume_normal_stream_on_end,
-      endCallOnViewChange: callModeConfig.end_call_on_view_change,
+      stream: callConfig.stream,
     });
 
     return true;
@@ -135,34 +109,26 @@ export class CallManager {
     }
 
     const modifyViewContext = options?.modifyViewContext ?? true;
-    const preserveCallStream =
-      options?.preserveCallStream ?? !this._state.resumeNormalStreamOnEnd;
 
     this._endOptions = {
       modifyViewContext,
-      preserveCallStream,
     };
 
     this._setState({
       ...this._state,
       state: 'ending_call',
-      lockNavigation: false,
     });
     if (modifyViewContext) {
       this._setCallContext({ state: 'ending_call' });
     }
 
-    this._api.getMicrophoneManager().mute();
+    if (this._shouldAutoMuteMicrophone()) {
+      this._api.getMicrophoneManager().mute();
+    }
     this._api.getMicrophoneManager().disconnect();
     await this._getMediaLoadedInfo(this._state.camera)?.mediaPlayerController?.mute();
 
     if (!modifyViewContext) {
-      this.reset();
-      return true;
-    }
-
-    if (preserveCallStream) {
-      this._clearCallState();
       this.reset();
       return true;
     }
@@ -180,16 +146,9 @@ export class CallManager {
     }
 
     if (this._state.state === 'connecting_call') {
-      if (this._state.autoEnableSpeaker) {
-        await mediaLoadedInfo.mediaPlayerController?.unmute();
-      } else {
-        await mediaLoadedInfo.mediaPlayerController?.mute();
-      }
-
-      if (this._state.autoEnableMicrophone) {
+      await mediaLoadedInfo.mediaPlayerController?.unmute();
+      if (this._shouldAutoUnmuteMicrophone()) {
         await this._api.getMicrophoneManager().unmute();
-      } else {
-        this._api.getMicrophoneManager().mute();
       }
 
       this._setCallContext({ state: 'in_call' });
@@ -200,11 +159,7 @@ export class CallManager {
       return;
     }
 
-    if (
-      this._state.state === 'ending_call' &&
-      this._endOptions?.modifyViewContext &&
-      !this._endOptions.preserveCallStream
-    ) {
+    if (this._state.state === 'ending_call' && this._endOptions?.modifyViewContext) {
       this.reset();
     }
   }
@@ -219,7 +174,7 @@ export class CallManager {
       return;
     }
 
-    await this._fail(localize('error.call_mode_stream_failed'));
+    await this._fail(localize('error.call_stream_failed'));
   }
 
   protected _getActiveCameraConfig(): CameraConfig | null {
@@ -236,37 +191,42 @@ export class CallManager {
     state?: CallViewState;
   }): void {
     this._api.getViewManager().setViewByParameters({
-      modifiers: [new CallSetViewModifier(context)],
+      modifiers: [new MergeContextViewModifier({ call: context })],
       ignoreNavigationLock: true,
     });
   }
 
   protected _clearCallContext(): void {
     this._api.getViewManager().setViewByParameters({
-      modifiers: [new CallClearViewModifier()],
-      ignoreNavigationLock: true,
-    });
-  }
-
-  protected _clearCallState(): void {
-    this._api.getViewManager().setViewByParameters({
-      modifiers: [new CallClearStateViewModifier()],
+      modifiers: [new RemoveContextViewModifier(['call'])],
       ignoreNavigationLock: true,
     });
   }
 
   protected _getMediaLoadedInfo(cameraID?: string): MediaLoadedInfo | null {
-    if (cameraID) {
-      return (
-        this._api.getMediaLoadedInfoManager().get(cameraID) ??
-        this._api.getMediaLoadedInfoManager().get()
-      );
-    }
-    return this._api.getMediaLoadedInfoManager().get();
+    return this._api.getMediaLoadedInfoManager().get(cameraID);
   }
 
   protected _matchesActiveCamera(cameraID?: string | null): boolean {
     return !cameraID || !this._state.camera || cameraID === this._state.camera;
+  }
+
+  protected _shouldAutoMuteMicrophone(): boolean {
+    return (
+      this._api
+        .getConfigManager()
+        .getConfig()
+        ?.live.microphone.auto_mute.includes('call') ?? true
+    );
+  }
+
+  protected _shouldAutoUnmuteMicrophone(): boolean {
+    return (
+      this._api
+        .getConfigManager()
+        .getConfig()
+        ?.live.microphone.auto_unmute.includes('call') ?? true
+    );
   }
 
   protected async _fail(message: string): Promise<false> {

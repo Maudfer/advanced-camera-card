@@ -62,11 +62,16 @@ describe('MediaLoadedInfoManager', () => {
   it('should track media info by camera without overwriting the selected media', () => {
     const api = createCardAPI();
     const manager = new MediaLoadedInfoManager(api);
-    const selectedMedia = createMediaLoadedInfo();
-    const otherMedia = createMediaLoadedInfo({ width: 200, height: 200 });
+    const selectedMedia = createMediaLoadedInfo({ cameraID: 'camera-1' });
+    const otherMedia = createMediaLoadedInfo({
+      cameraID: 'camera-2',
+      width: 200,
+      height: 200,
+    });
 
-    manager.set(selectedMedia, { cameraID: 'camera-1' });
-    manager.set(otherMedia, { cameraID: 'camera-2', selectCurrent: false });
+    manager.setSelected('camera-1');
+    manager.set(selectedMedia);
+    manager.set(otherMedia);
 
     expect(manager.get()).toBe(selectedMedia);
     expect(manager.get('camera-1')).toBe(selectedMedia);
@@ -82,9 +87,10 @@ describe('MediaLoadedInfoManager', () => {
   it('should clear the selected media when clearing the selected camera', () => {
     const api = createCardAPI();
     const manager = new MediaLoadedInfoManager(api);
-    const mediaLoadedInfo = createMediaLoadedInfo();
+    const mediaLoadedInfo = createMediaLoadedInfo({ cameraID: 'camera-1' });
 
-    manager.set(mediaLoadedInfo, { cameraID: 'camera-1' });
+    manager.setSelected('camera-1');
+    manager.set(mediaLoadedInfo);
     manager.clear({ cameraID: 'camera-1' });
 
     expect(manager.get()).toBeNull();
@@ -95,14 +101,57 @@ describe('MediaLoadedInfoManager', () => {
     });
   });
 
+  it('should select current media by camera and update condition state', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+    const selectedMedia = createMediaLoadedInfo({ cameraID: 'camera-1' });
+    const otherMedia = createMediaLoadedInfo({
+      cameraID: 'camera-2',
+      width: 200,
+      height: 200,
+    });
+
+    manager.setSelected('camera-1');
+    manager.set(selectedMedia);
+    manager.set(otherMedia);
+
+    manager.setSelected('camera-2');
+
+    expect(manager.get()).toBe(otherMedia);
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
+      mediaLoadedInfo: otherMedia,
+    });
+  });
+
+  it('should clear current media when selecting a camera without loaded media', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+    const mediaLoadedInfo = createMediaLoadedInfo({ cameraID: 'camera-1' });
+
+    manager.setSelected('camera-1');
+    manager.set(mediaLoadedInfo);
+
+    manager.setSelected('camera-2');
+
+    expect(manager.get()).toBeNull();
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
+      mediaLoadedInfo: null,
+    });
+  });
+
   it('should clear all current media without losing last known media', () => {
     const api = createCardAPI();
     const manager = new MediaLoadedInfoManager(api);
-    const selectedMedia = createMediaLoadedInfo();
-    const otherMedia = createMediaLoadedInfo({ width: 300, height: 300 });
+    const selectedMedia = createMediaLoadedInfo({ cameraID: 'camera-1' });
+    const otherMedia = createMediaLoadedInfo({
+      cameraID: 'camera-2',
+      width: 300,
+      height: 300,
+    });
 
-    manager.set(selectedMedia, { cameraID: 'camera-1' });
-    manager.set(otherMedia, { cameraID: 'camera-2', selectCurrent: false });
+    manager.setSelected('camera-1');
+    manager.set(selectedMedia);
+    manager.set(otherMedia);
 
     manager.clear({ all: true });
 

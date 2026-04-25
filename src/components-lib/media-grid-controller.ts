@@ -140,6 +140,15 @@ export class MediaGridController {
     return this._selected;
   }
 
+  private _getGridIDForElement(element: MediaGridChild): GridID | null {
+    for (const [id, gridElement] of this._gridContents.entries()) {
+      if (gridElement === element) {
+        return id;
+      }
+    }
+    return null;
+  }
+
   private _sortItemsInGrid(): void {
     const existingItems = this._masonry?.items;
     const selectedItem = existingItems?.find(
@@ -261,17 +270,19 @@ export class MediaGridController {
   }
 
   private _handleMediaLoadedInfoEvent = (ev: CustomEvent<MediaLoadedInfo>): void => {
-    const eventPath = ev.composedPath();
+    const element = ev.currentTarget;
+    if (!(element instanceof HTMLElement)) {
+      return;
+    }
 
-    for (const [id, element] of this._gridContents.entries()) {
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
-      if (eventPath.includes(element)) {
-        this._mediaLoadedInfoMap.set(id, ev.detail);
-        if (id !== this._selected) {
-          ev.stopPropagation();
-        }
-        break;
-      }
+    const id = this._getGridIDForElement(element as MediaGridChild);
+    if (!id) {
+      return;
+    }
+
+    this._mediaLoadedInfoMap.set(id, ev.detail);
+    if (id !== this._selected) {
+      ev.stopPropagation();
     }
   };
 
@@ -342,17 +353,19 @@ export class MediaGridController {
   }
 
   private _handleSelectGridCellEvent = (ev: Event): void => {
-    const eventPath = ev.composedPath();
+    const element = ev.currentTarget;
+    if (!(element instanceof HTMLElement)) {
+      return;
+    }
 
-    for (const [id, element] of this._gridContents.entries()) {
-      /* istanbul ignore else: the else path cannot be reached -- @preserve */
-      if (eventPath.includes(element)) {
-        if (this._selected !== id) {
-          this.selectCell(id);
-          ev.stopPropagation();
-        }
-        break;
-      }
+    const id = this._getGridIDForElement(element as MediaGridChild);
+    if (!id) {
+      return;
+    }
+
+    if (this._selected !== id) {
+      this.selectCell(id);
+      ev.stopPropagation();
     }
   };
 

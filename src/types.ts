@@ -39,6 +39,7 @@ export type MediaTechnology =
 export interface MediaLoadedInfo {
   width: number;
   height: number;
+  cameraID?: string;
   technology?: MediaTechnology[];
 
   mediaPlayerController?: MediaPlayerController;
@@ -47,6 +48,10 @@ export interface MediaLoadedInfo {
   // Whether or not this media is a placeholder (temporary image) whilst another
   // media item is being loaded.
   placeholder?: boolean;
+}
+
+export interface MediaUnloadedInfo {
+  cameraID?: string;
 }
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';

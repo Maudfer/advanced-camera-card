@@ -53,7 +53,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   );
 
   protected _destroyPlayer(): void {
-    this._player?.disconnectNow?.();
+    this._player?.reset?.();
     this._player = undefined;
   }
 
@@ -167,7 +167,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
         context: this.camera?.getConfig(),
       });
     }
-    if (!this.cameraEndpoints?.go2rtc) {
+    if (this.cameraEndpoints && !this.cameraEndpoints.go2rtc) {
       return renderMessage({
         type: 'error',
         message: localize('error.live_camera_no_endpoint'),

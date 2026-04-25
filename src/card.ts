@@ -38,7 +38,10 @@ import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import { MediaLoadedInfo, Message } from './types.js';
+import { isBeingCasted } from './utils/casting.js';
+import { shouldAutoHideMenu } from './utils/menu.js';
+import { shouldLockNavigation } from './utils/microphone.js';
+import { MediaLoadedInfo, MediaUnloadedInfo, Message } from './types.js';
 import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
@@ -262,7 +265,10 @@ class AdvancedCameraCard extends LitElement {
         slot=${ifDefined(slot)}
         .hass=${this._hass}
         .menuConfig=${this._config.menu}
-        .suppressed=${this._controller.getCallManager().shouldHideMenuDuringCall()}
+        .suppressed=${shouldAutoHideMenu(this._config.menu, {
+          callActive: this._controller.getCallManager().isActive(),
+          casted: isBeingCasted(),
+        })}
         .buttons=${this._menuButtonController.calculateButtons(
           this._hass,
           this._config,
@@ -308,65 +314,29 @@ class AdvancedCameraCard extends LitElement {
 
   protected _getSelectedMediaLoadedInfo(): MediaLoadedInfo | null {
     const selectedCameraID = this._controller.getViewManager().getView()?.camera;
-    return (
-      this._controller.getMediaLoadedInfoManager().get(selectedCameraID) ??
-      this._controller.getMediaLoadedInfoManager().get()
-    );
-  }
-
-  protected _getMediaEventCameraID(ev: Event): string | null {
-    for (const target of ev.composedPath()) {
-      if (
-        typeof target === 'object' &&
-        target !== null &&
-        'camera' in target &&
-        (target as { camera?: { getID?: () => string } }).camera?.getID
-      ) {
-        return (target as { camera: { getID: () => string } }).camera.getID();
-      }
-
-      if (
-        typeof target === 'object' &&
-        target !== null &&
-        'viewFilterCameraID' in target &&
-        (target as { viewFilterCameraID?: string }).viewFilterCameraID
-      ) {
-        return (target as { viewFilterCameraID: string }).viewFilterCameraID;
-      }
-
-      if (target instanceof HTMLElement) {
-        const gridID = target.getAttribute('grid-id');
-        if (gridID) {
-          return gridID;
-        }
-      }
-    }
-
-    return this._controller.getViewManager().getView()?.camera ?? null;
+    return this._controller.getMediaLoadedInfoManager().get(selectedCameraID);
   }
 
   protected _handleMediaLoaded = (ev: CustomEvent<MediaLoadedInfo>): void => {
-    const cameraID = this._getMediaEventCameraID(ev);
-    const selectedCameraID = this._controller.getViewManager().getView()?.camera;
-
-    this._controller.getMediaLoadedInfoManager().set(ev.detail, {
-      cameraID,
-      selectCurrent: !cameraID || !selectedCameraID || cameraID === selectedCameraID,
-    });
-    void this._controller.getCallManager().onMediaLoaded(ev.detail, cameraID);
+    this._controller.getMediaLoadedInfoManager().set(ev.detail);
+    void this._controller.getCallManager().onMediaLoaded(ev.detail, ev.detail.cameraID);
   };
 
-  protected _handleMediaUnloaded = (ev: Event): void => {
+  protected _handleMediaUnloaded = (ev: CustomEvent<MediaUnloadedInfo>): void => {
     this._controller.getMediaLoadedInfoManager().clear({
-      cameraID: this._getMediaEventCameraID(ev),
+      cameraID: ev.detail?.cameraID ?? undefined,
     });
   };
 
-  protected _handleLiveError = (ev: Event): void => {
-    void this._controller.getCallManager().onLiveError(this._getMediaEventCameraID(ev));
+  protected _handleLiveError = (ev: CustomEvent<{ cameraID?: string }>): void => {
+    void this._controller.getCallManager().onLiveError(ev.detail?.cameraID);
   };
 
   protected updated(): void {
+    this._controller
+      .getMediaLoadedInfoManager()
+      .setSelected(this._controller.getViewManager().getView()?.camera);
+
     if (this._controller.getInitializationManager().isInitializedMandatory()) {
       this._controller.getQueryStringManager().executeIfNecessary();
     }
@@ -411,6 +381,12 @@ class AdvancedCameraCard extends LitElement {
 
     const actions = this._controller.getActionsManager().getMergedActions();
     const cameraManager = this._controller.getCameraManager();
+    const callState = this._controller.getCallManager().getState();
+    const microphoneState = this._controller.getMicrophoneManager().getState();
+    const callMediaLoadedInfo = this._controller
+      .getMediaLoadedInfoManager()
+      .get(callState.camera);
+    const cardWideConfig = this._controller.getConfigManager().getCardWideConfig();
 
     const showLoading =
       this._config?.performance?.features.card_loading_indicator !== false &&
@@ -476,12 +452,15 @@ class AdvancedCameraCard extends LitElement {
               .viewItemManager=${this._controller.getViewItemManager()}
               .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
               .config=${this._controller.getConfigManager().getConfig()}
-              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+              .cardWideConfig=${cardWideConfig}
               .rawConfig=${this._controller.getConfigManager().getRawConfig()}
               .configManager=${this._controller.getConfigManager()}
               .hide=${!!this._controller.getMessageManager().hasMessage()}
-              .microphoneState=${this._controller.getMicrophoneManager().getState()}
-              .navigationLocked=${this._controller.getCallManager().isNavigationLocked()}
+              .microphoneState=${microphoneState}
+              .navigationLocked=${shouldLockNavigation(
+                this._config,
+                microphoneState,
+              )}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
@@ -490,12 +469,11 @@ class AdvancedCameraCard extends LitElement {
               .problems=${this._controller.getProblemManager().getProblemPresence()}
             ></advanced-camera-card-views>
             <advanced-camera-card-call-controls
-              .callState=${this._controller.getCallManager().getState()}
-              .microphoneState=${this._controller.getMicrophoneManager().getState()}
-              .mediaLoadedInfo=${this._controller
-                .getMediaLoadedInfoManager()
-                .get(this._controller.getCallManager().getState().camera)}
-              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+              .callState=${callState.state}
+              .microphoneMuted=${microphoneState?.muted ?? true}
+              .speakerMuted=${callMediaLoadedInfo?.mediaPlayerController?.isMuted() ?? true}
+              .hasSpeaker=${!!callMediaLoadedInfo?.mediaPlayerController}
+              .cardWideConfig=${cardWideConfig}
             ></advanced-camera-card-call-controls>
             ${this._controller.getMessageManager().hasMessage()
               ? // Keep message rendering to last to show messages that may have been

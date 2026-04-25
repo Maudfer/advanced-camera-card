@@ -431,6 +431,7 @@ export class AdvancedCameraCardImageUpdatingPlayer
             src=${live(src)}
             @load=${(ev: Event) => {
               const mediaLoadedInfo = createMediaLoadedInfo(ev, {
+                cameraID: this.cameraConfig?.id,
                 mediaPlayerController: this._mediaPlayerController,
                 capabilities: {
                   supportsPause: !!this._getEffectiveRefreshSeconds(),

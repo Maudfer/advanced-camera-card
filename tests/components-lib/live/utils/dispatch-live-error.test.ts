@@ -7,6 +7,10 @@ it('should dispatch live error event', () => {
   const handler = vi.fn();
   element.addEventListener('advanced-camera-card:live:error', handler);
 
-  dispatchLiveErrorEvent(element);
-  expect(handler).toBeCalled();
+  dispatchLiveErrorEvent(element, { cameraID: 'camera.office' });
+  expect(handler).toBeCalledWith(
+    expect.objectContaining({
+      detail: { cameraID: 'camera.office' },
+    }),
+  );
 });

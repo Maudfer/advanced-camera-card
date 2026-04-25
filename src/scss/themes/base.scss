@@ -149,6 +149,25 @@
     --advanced-camera-card-control-background
   );
 
+  /****************
+   * Call controls
+   ****************/
+
+  --advanced-camera-card-call-controls-color: var(
+    --advanced-camera-card-control-foreground
+  );
+  --advanced-camera-card-call-controls-background: var(
+    --advanced-camera-card-control-background-transparent
+  );
+  --advanced-camera-card-call-controls-button-background: color-mix(
+    in oklab,
+    var(--advanced-camera-card-call-controls-color),
+    transparent var(--advanced-camera-card-control-background-opacity)
+  );
+  --advanced-camera-card-call-controls-critical-color: var(
+    --advanced-camera-card-menu-button-critical-color
+  );
+
   /************
    * Thumbnails
    ************/

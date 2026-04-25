@@ -156,36 +156,19 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
           }),
         };
       }
-      case 'call_started': {
+      case 'call': {
         const oldCallState = oldState?.call?.state;
         const newCallState = newState?.call?.state;
-        const started = oldCallState !== 'in_call' && newCallState === 'in_call';
+        const changed = !!newCallState && oldCallState !== newCallState;
+        const matchesTargetState = !condition.state || condition.state === newCallState;
 
         return {
-          result: started,
-          ...(started && {
+          result: changed && matchesTargetState,
+          ...(changed && {
             triggerData: {
               call: {
                 ...(oldCallState && { from: oldCallState }),
-                to: 'in_call',
-              },
-            },
-          }),
-        };
-      }
-      case 'call_ended': {
-        const oldCallState = oldState?.call?.state;
-        const newCallState = newState?.call?.state;
-        const ended =
-          !!oldCallState && oldCallState !== 'idle' && newCallState === 'idle';
-
-        return {
-          result: ended,
-          ...(ended && {
-            triggerData: {
-              call: {
-                from: oldCallState,
-                to: 'idle',
+                to: newCallState,
               },
             },
           }),

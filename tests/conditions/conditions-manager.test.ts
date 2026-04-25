@@ -27,19 +27,14 @@ describe('ConditionsManager', () => {
 
   const createCallState = (state: CallSessionState['state']): CallSessionState => ({
     state,
-    lockNavigation: false,
-    autoEnableMicrophone: true,
-    autoEnableSpeaker: true,
-    resumeNormalStreamOnEnd: true,
-    endCallOnViewChange: false,
   });
 
   describe('should evaluate conditions', () => {
     describe('with call lifecycle conditions', () => {
-      it('should match call_started when a call becomes active', () => {
+      it('should match call with state in_call when a call becomes active', () => {
         const stateManager = new ConditionStateManager();
         const manager = new ConditionsManager(
-          [{ condition: 'call_started' as const }],
+          [{ condition: 'call' as const, state: 'in_call' }],
           stateManager,
         );
         const listener = vi.fn();
@@ -63,10 +58,10 @@ describe('ConditionsManager', () => {
         expect(listener).toHaveBeenCalledTimes(1);
       });
 
-      it('should match call_ended when a call returns to idle', () => {
+      it('should match call with state idle when a call returns to idle', () => {
         const stateManager = new ConditionStateManager();
         const manager = new ConditionsManager(
-          [{ condition: 'call_ended' as const }],
+          [{ condition: 'call' as const, state: 'idle' }],
           stateManager,
         );
         const listener = vi.fn();
@@ -89,6 +84,26 @@ describe('ConditionsManager', () => {
         });
 
         stateManager.setState({ call: createCallState('idle') });
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+
+      it('should match any call state change when no state filter is provided', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager([{ condition: 'call' as const }], stateManager);
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ call: createCallState('connecting_call') });
+        expect(listener).toHaveBeenLastCalledWith({
+          result: true,
+          triggerData: {
+            call: {
+              to: 'connecting_call',
+            },
+          },
+        });
+
+        stateManager.setState({ call: createCallState('connecting_call') });
         expect(listener).toHaveBeenCalledTimes(1);
       });
     });

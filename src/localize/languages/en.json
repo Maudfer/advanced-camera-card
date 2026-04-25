@@ -33,18 +33,9 @@
   },
   "config": {
     "cameras": {
-      "call_mode": {
-        "auto_enable_microphone": "Auto-enable microphone on call start",
-        "auto_enable_speaker": "Auto-enable speaker on call start",
-        "editor_label": "Call mode",
-        "enabled": "Enable call mode",
-        "end_call_on_view_change": "End call if a view change is attempted",
-        "hide_menu_during_call": "Prevent buttons menu display during call",
-        "lock_navigation": "Lock navigation during a call",
-        "resume_normal_stream_on_end": "Resume the normal stream when the call ends",
-        "show_in_menu": "Show call button in the menu",
-        "stream": "Call stream name",
-        "allow_regular_mic_button": "Allow regular microphone button to be shown in call mode"
+      "call": {
+        "editor_label": "Call",
+        "stream": "Call stream name"
       },
       "always_error_if_entity_unavailable": "Always treat entity unavailability as an error",
       "camera_entity": "Camera Entity",
@@ -439,9 +430,12 @@
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
+        "auto_mute": "Automatically mute microphone",
+        "auto_unmute": "Automatically unmute microphone",
         "always_connected": "Always keep the microphone connected",
         "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
+        "lock_navigation": "Lock navigation while the microphone is active",
         "mute_after_microphone_mute_seconds": "Seconds after microphone mute before muting inbound audio"
       },
       "preload": "Preload live view in the background",
@@ -469,6 +463,7 @@
     },
     "menu": {
       "alignment": "Menu alignment",
+      "auto_hide": "Automatically hide menu",
       "alignments": {
         "bottom": "Aligned to the bottom",
         "left": "Aligned to the left",
@@ -747,12 +742,12 @@
     "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
-    "call_mode_disabled": "Call mode is not enabled for the selected camera",
-    "call_mode_live_only": "Call mode can only be started from the live view",
-    "call_mode_no_stream": "A dedicated call stream must be configured before starting a call",
-    "call_mode_provider_unsupported": "This initial call mode implementation currently supports go2rtc live streams only",
-    "call_mode_stream_failed": "The call stream could not be established",
-    "call_mode_substream_unsupported": "Call mode cannot be started while a substream override is active",
+    "call_disabled": "Call is not enabled for the selected camera",
+    "call_live_only": "Call can only be started from the live view",
+    "call_no_stream": "A dedicated call stream must be configured before starting a call",
+    "call_provider_unsupported": "This initial call implementation currently supports go2rtc live streams only",
+    "call_stream_failed": "The call stream could not be established",
+    "call_substream_unsupported": "Call cannot be started while a substream override is active",
     "configuration": "Check configuration",
     "could_not_render_elements": "Could not render picture elements",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",

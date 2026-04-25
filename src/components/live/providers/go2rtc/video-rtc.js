@@ -218,7 +218,7 @@ export class VideoRTC extends HTMLElement {
     }
   }
 
-  disconnectNow() {
+  _clearPendingTimers() {
     if (this.disconnectTID) {
       clearTimeout(this.disconnectTID);
       this.disconnectTID = 0;
@@ -228,7 +228,10 @@ export class VideoRTC extends HTMLElement {
       clearTimeout(this.reconnectTID);
       this.reconnectTID = 0;
     }
+  }
 
+  reset() {
+    this._clearPendingTimers();
     this.ondisconnect();
   }
 
@@ -288,10 +291,7 @@ export class VideoRTC extends HTMLElement {
    * document-connected element.
    */
   connectedCallback() {
-    if (this.disconnectTID) {
-      clearTimeout(this.disconnectTID);
-      this.disconnectTID = 0;
-    }
+    this._clearPendingTimers();
 
     // because video autopause on disconnected from DOM
     if (this.video) {
@@ -316,12 +316,7 @@ export class VideoRTC extends HTMLElement {
     if (this.wsState === WebSocket.CLOSED && this.pcState === WebSocket.CLOSED) return;
 
     this.disconnectTID = setTimeout(() => {
-      if (this.reconnectTID) {
-        clearTimeout(this.reconnectTID);
-        this.reconnectTID = 0;
-      }
-
-      this.disconnectTID = 0;
+      this._clearPendingTimers();
 
       this.ondisconnect();
     }, this.DISCONNECT_TIMEOUT);

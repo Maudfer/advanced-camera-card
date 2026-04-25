@@ -10,7 +10,7 @@ vi.mock('../../../../../src/components/live/providers/go2rtc/video-rtc.js', () =
     public mode = '';
     public visibilityCheck = false;
 
-    public disconnectNow = vi.fn();
+    public reset = vi.fn();
     public reconnect = vi.fn();
     public setControls = vi.fn();
   },
@@ -26,6 +26,51 @@ describe('AdvancedCameraCardGo2RTC', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     document.body.innerHTML = '';
+  });
+
+  it('should not render a no-endpoint error while endpoints are still loading', async () => {
+    const camera = mock<Camera>();
+    vi.mocked(camera.getConfig).mockReturnValue(
+      createCameraConfig({
+        live_provider: 'go2rtc',
+      }),
+    );
+
+    const element = document.createElement(
+      'advanced-camera-card-live-go2rtc',
+    ) as AdvancedCameraCardGo2RTC;
+    element.hass = createHASS();
+    element.camera = camera;
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    expect(
+      element.shadowRoot?.querySelector('advanced-camera-card-message'),
+    ).toBeNull();
+  });
+
+  it('should render a no-endpoint error when endpoints are explicitly missing', async () => {
+    const camera = mock<Camera>();
+    vi.mocked(camera.getConfig).mockReturnValue(
+      createCameraConfig({
+        live_provider: 'go2rtc',
+      }),
+    );
+
+    const element = document.createElement(
+      'advanced-camera-card-live-go2rtc',
+    ) as AdvancedCameraCardGo2RTC;
+    element.hass = createHASS();
+    element.camera = camera;
+    element.cameraEndpoints = {};
+
+    document.body.appendChild(element);
+    await element.updateComplete;
+
+    expect(
+      element.shadowRoot?.querySelector('advanced-camera-card-message'),
+    ).not.toBeNull();
   });
 
   it('should create a player for direct go2rtc endpoints and recreate it on endpoint changes', async () => {

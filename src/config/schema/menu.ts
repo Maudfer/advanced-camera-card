@@ -12,6 +12,7 @@ const MENU_STYLES = [
 ] as const;
 const MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const MENU_ALIGNMENTS = MENU_POSITIONS;
+const MENU_AUTO_HIDE_CONDITIONS = ['call', 'casting'] as const;
 
 const baseButtonDefault = {
   alignment: 'matching' as const,
@@ -32,6 +33,7 @@ const hiddenButtonDefault = {
 
 export const menuConfigDefault = {
   alignment: 'left' as const,
+  auto_hide: ['call' as const],
   button_size: 40,
   buttons: {
     // Clone per key so each button has its own default object. This avoids
@@ -87,6 +89,10 @@ export const menuConfigSchema = z
     style: z.enum(MENU_STYLES).default(menuConfigDefault.style),
     position: z.enum(MENU_POSITIONS).default(menuConfigDefault.position),
     alignment: z.enum(MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
+    auto_hide: z
+      .enum(MENU_AUTO_HIDE_CONDITIONS)
+      .array()
+      .default(menuConfigDefault.auto_hide),
     buttons: z
       .object({
         call: visibleButtonSchema.default(menuConfigDefault.buttons.call),

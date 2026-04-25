@@ -31,26 +31,7 @@ export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.dashboard_path` as const;
 export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.view_path` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_ENABLED =
-  `${CONF_CAMERAS}.#.call_mode.enabled` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_STREAM =
-  `${CONF_CAMERAS}.#.call_mode.stream` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_MICROPHONE =
-  `${CONF_CAMERAS}.#.call_mode.auto_enable_microphone` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_AUTO_ENABLE_SPEAKER =
-  `${CONF_CAMERAS}.#.call_mode.auto_enable_speaker` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_ALLOW_REGULAR_MIC_BUTTON =
-  `${CONF_CAMERAS}.#.call_mode.allow_regular_mic_button` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_HIDE_MENU_DURING_CALL =
-  `${CONF_CAMERAS}.#.call_mode.hide_menu_during_call` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_LOCK_NAVIGATION =
-  `${CONF_CAMERAS}.#.call_mode.lock_navigation` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_SHOW_IN_MENU =
-  `${CONF_CAMERAS}.#.call_mode.show_in_menu` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_RESUME_NORMAL_STREAM_ON_END =
-  `${CONF_CAMERAS}.#.call_mode.resume_normal_stream_on_end` as const;
-export const CONF_CAMERAS_ARRAY_CALL_MODE_END_CALL_ON_VIEW_CHANGE =
-  `${CONF_CAMERAS}.#.call_mode.end_call_on_view_change` as const;
+export const CONF_CAMERAS_ARRAY_CALL_STREAM = `${CONF_CAMERAS}.#.call.stream` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO =
   `${CONF_CAMERAS}.#.dimensions.aspect_ratio` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_ROTATION =
@@ -374,10 +355,16 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
   `${CONF_LIVE}.microphone.disconnect_seconds` as const;
+export const CONF_LIVE_MICROPHONE_AUTO_MUTE =
+  `${CONF_LIVE}.microphone.auto_mute` as const;
+export const CONF_LIVE_MICROPHONE_AUTO_UNMUTE =
+  `${CONF_LIVE}.microphone.auto_unmute` as const;
 export const CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS =
   `${CONF_LIVE}.microphone.mute_after_microphone_mute_seconds` as const;
 export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
   `${CONF_LIVE}.microphone.always_connected` as const;
+export const CONF_LIVE_MICROPHONE_LOCK_NAVIGATION =
+  `${CONF_LIVE}.microphone.lock_navigation` as const;
 export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
 
 const CONF_IMAGE = 'image' as const;
@@ -418,6 +405,7 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_INFO_CONTROL =
 
 const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
+export const CONF_MENU_AUTO_HIDE = `${CONF_MENU}.auto_hide` as const;
 export const CONF_MENU_POSITION = `${CONF_MENU}.position` as const;
 export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;

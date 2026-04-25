@@ -20,20 +20,3 @@ export const getCallStream = (view: View, cameraID?: string): string | null => {
     ? view.context.call.stream ?? null
     : null;
 };
-
-export const setCallContext = (view: View, callContext: CallViewContext): void => {
-  view.mergeInContext({
-    call: {
-      ...view.context?.call,
-      ...callContext,
-    },
-  });
-};
-
-export const removeCallContext = (view: View): void => {
-  view.removeContext('call');
-};
-
-export const removeCallState = (view: View): void => {
-  view.removeContextProperty('call', 'state');
-};

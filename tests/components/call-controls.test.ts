@@ -1,9 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { mock } from 'vitest-mock-extended';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import '../../src/components/call-controls';
 import { AdvancedCameraCardCallControls } from '../../src/components/call-controls';
-import { MediaPlayerController } from '../../src/types';
-import { createMediaLoadedInfo, flushPromises } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('CallControls', () => {
@@ -11,24 +8,20 @@ describe('CallControls', () => {
     document.body.innerHTML = '';
   });
 
-  it('should toggle the active call speaker using the bound media info', async () => {
-    const mediaPlayerController = mock<MediaPlayerController>();
-    mediaPlayerController.isMuted.mockReturnValue(false);
-
+  it.each([
+    ['mute', false],
+    ['unmute', true],
+  ])(
+    'should dispatch the %s action for the active call speaker button',
+    async (expectedAction, speakerMuted) => {
     const element = document.createElement(
       'advanced-camera-card-call-controls',
     ) as AdvancedCameraCardCallControls;
-    element.callState = {
-      state: 'in_call',
-      camera: 'camera-1',
-      stream: 'doorbell',
-      lockNavigation: true,
-      autoEnableMicrophone: true,
-      autoEnableSpeaker: true,
-      resumeNormalStreamOnEnd: true,
-      endCallOnViewChange: false,
-    };
-    element.mediaLoadedInfo = createMediaLoadedInfo({ mediaPlayerController });
+    const handler = vi.fn();
+    element.addEventListener('advanced-camera-card:action:execution-request', handler);
+    element.callState = 'in_call';
+    element.hasSpeaker = true;
+    element.speakerMuted = speakerMuted;
 
     document.body.appendChild(element);
     await element.updateComplete;
@@ -37,8 +30,17 @@ describe('CallControls', () => {
     expect(buttons).toHaveLength(3);
 
     (buttons?.[2] as HTMLElement).click();
-    await flushPromises();
 
-    expect(mediaPlayerController.mute).toBeCalled();
-  });
+    expect(handler).toBeCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          actions: expect.objectContaining({
+            action: 'fire-dom-event',
+            advanced_camera_card_action: expectedAction,
+          }),
+        }),
+      }),
+    );
+    },
+  );
 });

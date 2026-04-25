@@ -45,39 +45,21 @@ conditions:
 | `condition` | Must be `camera`.                                                                                                                                                                     |
 | `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
 
-## `call_ended`
+## `call`
 
-Matches when a call session returns to `idle`.
-
-```yaml
-conditions:
-  - condition: call_ended
-```
-
-| Parameter   | Description           |
-| ----------- | --------------------- |
-| `condition` | Must be `call_ended`. |
-
-> [!NOTE]
-> This is primarily useful for running [automations](./automations.md) when a
-> call session finishes.
-
-## `call_started`
-
-Matches when a call session becomes active (`in_call`).
+Matches when the call state changes. If `state` is provided, the condition only matches when the call transitions into that state. If `state` is omitted, any call state transition matches.
 
 ```yaml
 conditions:
-  - condition: call_started
+  - condition: call
+    state: in_call
 ```
 
-| Parameter   | Description             |
-| ----------- | ----------------------- |
-| `condition` | Must be `call_started`. |
+- `condition`: Must be `call`.
+- `state`: Optional. If provided, must be one of `idle`, `connecting_call`, `in_call`, or `ending_call`.
 
 > [!NOTE]
-> This is primarily useful for running [automations](./automations.md) when a
-> call session has been established.
+> Use `state: in_call` when a call becomes active and `state: idle` when a call returns to the resting state.
 
 ## `config`
 
@@ -421,8 +403,9 @@ conditions:
  - condition: camera
    cameras:
      - camera.office
-  - condition: call_ended
-  - condition: call_started
+  - condition: call
+  - condition: call
+    state: in_call
   - condition: config
     paths:
       - "menu.style"

@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  getCallStream,
-  removeCallContext,
-  removeCallState,
-  setCallContext,
-} from '../../src/utils/call';
+import { getCallStream } from '../../src/utils/call';
 import { createView } from '../test-utils';
 
 describe('getCallStream', () => {
@@ -66,70 +61,5 @@ describe('getCallStream', () => {
 
     expect(getCallStream(view)).toBeNull();
     expect(getCallStream(view, 'camera-3')).toBeNull();
-  });
-});
-
-describe('call context helpers', () => {
-  it('should merge new call context into the view', () => {
-    const view = createView({
-      camera: 'camera-1',
-      context: {
-        call: {
-          camera: 'camera-1',
-          stream: 'doorbell',
-        },
-      },
-    });
-
-    setCallContext(view, {
-      state: 'in_call',
-    });
-
-    expect(view.context).toEqual({
-      call: {
-        camera: 'camera-1',
-        stream: 'doorbell',
-        state: 'in_call',
-      },
-    });
-  });
-
-  it('should remove all call context', () => {
-    const view = createView({
-      camera: 'camera-1',
-      context: {
-        call: {
-          camera: 'camera-1',
-          stream: 'doorbell',
-          state: 'ending_call',
-        },
-      },
-    });
-
-    removeCallContext(view);
-
-    expect(view.context).toEqual({});
-  });
-
-  it('should remove only the call state', () => {
-    const view = createView({
-      camera: 'camera-1',
-      context: {
-        call: {
-          camera: 'camera-1',
-          stream: 'doorbell',
-          state: 'ending_call',
-        },
-      },
-    });
-
-    removeCallState(view);
-
-    expect(view.context).toEqual({
-      call: {
-        camera: 'camera-1',
-        stream: 'doorbell',
-      },
-    });
   });
 });

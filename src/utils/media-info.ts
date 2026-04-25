@@ -1,6 +1,7 @@
 import {
   MediaLoadedCapabilities,
   MediaLoadedInfo,
+  MediaUnloadedInfo,
   MediaPlayerController,
   MediaTechnology,
 } from '../types.js';
@@ -17,6 +18,7 @@ const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
 export function createMediaLoadedInfo(
   source: Event | HTMLElement,
   options?: {
+    cameraID?: string;
     mediaPlayerController?: MediaPlayerController;
     capabilities?: MediaLoadedCapabilities;
     technology?: MediaTechnology[];
@@ -61,6 +63,7 @@ export function dispatchMediaLoadedEvent(
   target: HTMLElement,
   source: Event | HTMLElement,
   options?: {
+    cameraID?: string;
     mediaPlayerController?: MediaPlayerController;
     capabilities?: MediaLoadedCapabilities;
     technology?: MediaTechnology[];
@@ -88,8 +91,11 @@ export function dispatchExistingMediaLoadedInfoAsEvent(
  * Dispatch a media unloaded event.
  * @param element The element to send the event.
  */
-export function dispatchMediaUnloadedEvent(element: HTMLElement): void {
-  fireAdvancedCameraCardEvent(element, 'media:unloaded');
+export function dispatchMediaUnloadedEvent(
+  element: HTMLElement,
+  detail?: MediaUnloadedInfo,
+): void {
+  fireAdvancedCameraCardEvent(element, 'media:unloaded', detail);
 }
 
 export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
@@ -127,7 +133,10 @@ export interface AdvancedCameraCardMediaLoadedEventTarget extends EventTarget {
   ): void;
   addEventListener(
     event: 'advanced-camera-card:media:unloaded',
-    listener: (this: AdvancedCameraCardMediaLoadedEventTarget, ev: CustomEvent) => void,
+    listener: (
+      this: AdvancedCameraCardMediaLoadedEventTarget,
+      ev: CustomEvent<MediaUnloadedInfo>,
+    ) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
   addEventListener(
@@ -145,7 +154,10 @@ export interface AdvancedCameraCardMediaLoadedEventTarget extends EventTarget {
   ): void;
   removeEventListener(
     event: 'advanced-camera-card:media:unloaded',
-    listener: (this: AdvancedCameraCardMediaLoadedEventTarget, ev: CustomEvent) => void,
+    listener: (
+      this: AdvancedCameraCardMediaLoadedEventTarget,
+      ev: CustomEvent<MediaUnloadedInfo>,
+    ) => void,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener(

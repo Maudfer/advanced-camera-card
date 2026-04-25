@@ -1,6 +1,7 @@
 import { ViewContext } from 'view';
 import { log } from '../../utils/debug';
 import { getCallStream } from '../../utils/call';
+import { shouldLockNavigation } from '../../utils/microphone';
 import { getStreamCameraID } from '../../utils/substream';
 import { View } from '../../view/view';
 import { InitializationAspect } from '../initialization-manager';
@@ -149,14 +150,17 @@ export class ViewManager implements ViewManagerInterface {
     ) {
       void this._api.getCallManager().endCall({
         modifyViewContext: false,
-        preserveCallStream: false,
       });
       view.removeContext('call');
       return true;
     }
 
     return (
-      !!options?.ignoreNavigationLock || !this._api.getCallManager().isNavigationLocked()
+      !!options?.ignoreNavigationLock ||
+      !shouldLockNavigation(
+        this._api.getConfigManager().getConfig(),
+        this._api.getMicrophoneManager().getState(),
+      )
     );
   }
 

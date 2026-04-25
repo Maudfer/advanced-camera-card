@@ -12,6 +12,7 @@ import {
 } from './common/controls/timeline';
 import { viewDisplaySchema } from './common/display';
 import {
+  MICROPHONE_ACTION_CONDITIONS,
   MEDIA_ACTION_NEGATIVE_CONDITIONS,
   MEDIA_ACTION_POSITIVE_CONDITIONS,
   MEDIA_MUTE_CONDITIONS,
@@ -20,18 +21,30 @@ import {
 import { transitionEffectConfigSchema } from './common/transition-effect';
 
 const microphoneConfigDefault = {
+  auto_mute: ['call' as const],
+  auto_unmute: ['call' as const],
   always_connected: false,
   disconnect_seconds: 90,
+  lock_navigation: true,
   mute_after_microphone_mute_seconds: 60,
 };
 
 const microphoneConfigSchema = z
   .object({
+    auto_mute: z
+      .enum(MICROPHONE_ACTION_CONDITIONS)
+      .array()
+      .default(microphoneConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MICROPHONE_ACTION_CONDITIONS)
+      .array()
+      .default(microphoneConfigDefault.auto_unmute),
     always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
     disconnect_seconds: z
       .number()
       .min(0)
       .default(microphoneConfigDefault.disconnect_seconds),
+    lock_navigation: z.boolean().default(microphoneConfigDefault.lock_navigation),
     mute_after_microphone_mute_seconds: z
       .number()
       .min(0)

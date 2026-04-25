@@ -8,11 +8,6 @@ import { createCardAPI } from '../test-utils.js';
 describe('AutomationsManager', () => {
   const createCallState = (state: CallSessionState['state']): CallSessionState => ({
     state,
-    lockNavigation: false,
-    autoEnableMicrophone: true,
-    autoEnableSpeaker: true,
-    resumeNormalStreamOnEnd: true,
-    endCallOnViewChange: false,
   });
 
   const actions = [
@@ -133,7 +128,7 @@ describe('AutomationsManager', () => {
     expect(api.getActionsManager().executeActions).toBeCalled();
   });
 
-  it('should execute actions on call_started and call_ended', () => {
+  it('should execute actions on call state changes', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
@@ -145,11 +140,11 @@ describe('AutomationsManager', () => {
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([
       {
-        conditions: [{ condition: 'call_started' as const }],
+        conditions: [{ condition: 'call' as const, state: 'in_call' }],
         actions,
       },
       {
-        conditions: [{ condition: 'call_ended' as const }],
+        conditions: [{ condition: 'call' as const, state: 'idle' }],
         actions,
       },
     ]);

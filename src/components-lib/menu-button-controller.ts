@@ -492,7 +492,7 @@ export class MenuButtonController {
     }
 
     const cameraConfig = cameraManager.getStore().getCameraConfig(view.camera);
-    if (!cameraConfig?.call_mode?.enabled || !cameraConfig.call_mode.show_in_menu) {
+    if (!cameraConfig?.call?.stream) {
       return null;
     }
 
@@ -512,19 +512,9 @@ export class MenuButtonController {
     microphoneManager?: MicrophoneManager | null,
   ): MenuItem | null {
     const streamCameraID = view ? getStreamCameraID(view) : null;
-    if (!streamCameraID) {
+    if (!streamCameraID || view?.is('live')) {
       return null;
     }
-
-    const cameraConfig = cameraManager.getStore().getCameraConfig(view.camera);
-    if (
-      view.is('live') &&
-      cameraConfig?.call_mode?.enabled &&
-      !cameraConfig.call_mode.allow_regular_mic_button
-    ) {
-      return null;
-    }
-
     const capabilities = cameraManager.getCameraCapabilities(streamCameraID);
 
     if (microphoneManager && capabilities?.has('2-way-audio')) {

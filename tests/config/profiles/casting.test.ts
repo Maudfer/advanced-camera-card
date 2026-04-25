@@ -13,11 +13,11 @@ it('should contain expected defaults', () => {
     'live.controls.builtin': false,
     'live.show_image_during_load': true,
     'media_viewer.controls.builtin': false,
+    'menu.auto_hide': ['call', 'casting'],
     'menu.buttons.fullscreen.enabled': false,
     'menu.buttons.media_player.enabled': false,
     'menu.buttons.mute.enabled': true,
     'menu.buttons.play.enabled': true,
-    'menu.style': 'none',
   });
 });
 

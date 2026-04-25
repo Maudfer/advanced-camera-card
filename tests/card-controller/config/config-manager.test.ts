@@ -182,6 +182,7 @@ describe('ConfigManager', () => {
 
     manager.setConfig(config);
 
+    expect(manager.getConfig()?.menu.auto_hide).toEqual(['call', 'casting']);
     expect(manager.getConfig()?.menu.buttons.play.enabled).toBeTruthy();
     expect(manager.getConfig()?.menu.buttons.mute.enabled).toBeTruthy();
     expect(manager.getConfig()?.menu.buttons.fullscreen.enabled).toBeFalsy();

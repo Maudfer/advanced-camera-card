@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CallManager } from '../../src/card-controller/call-manager';
-import { CallClearStateViewModifier } from '../../src/card-controller/view/modifiers/call-clear-state';
 import { MediaPlayerController } from '../../src/types';
 import {
+  createConfig,
   createCameraConfig,
   createCardAPI,
   createMediaLoadedInfo,
@@ -15,8 +15,30 @@ import {
 describe('CallManager', () => {
   it('should expose lock and end-on-view-change state from the active call', async () => {
     const api = createCardAPI();
+    const mediaPlayerController = mock<MediaPlayerController>();
+    const microphoneState = {
+      connected: false,
+      muted: true,
+      forbidden: false,
+    };
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
+    );
+    vi.mocked(api.getMicrophoneManager().getState).mockImplementation(
+      () => microphoneState,
+    );
+    vi.mocked(api.getMicrophoneManager().unmute).mockImplementation(async () => {
+      microphoneState.connected = true;
+      microphoneState.muted = false;
+    });
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            lock_navigation: true,
+          },
+        },
+      }),
     );
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
       createStore([
@@ -24,15 +46,15 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
-              lock_navigation: true,
-              end_call_on_view_change: true,
             },
           }),
         },
       ]),
+    );
+    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+      createMediaLoadedInfo({ mediaPlayerController }),
     );
 
     const manager = new CallManager(api);
@@ -42,8 +64,70 @@ describe('CallManager', () => {
 
     await manager.startCall();
 
-    expect(manager.isNavigationLocked()).toBe(true);
+    expect(manager.isNavigationLocked()).toBe(false);
     expect(manager.shouldEndOnViewChange()).toBe(true);
+
+    await manager.onMediaLoaded(
+      createMediaLoadedInfo({ mediaPlayerController }),
+      'camera-1',
+    );
+
+    expect(manager.isNavigationLocked()).toBe(true);
+  });
+
+  it('should not lock navigation when live microphone lock_navigation is disabled', async () => {
+    const api = createCardAPI();
+    const mediaPlayerController = mock<MediaPlayerController>();
+    const microphoneState = {
+      connected: false,
+      muted: true,
+      forbidden: false,
+    };
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ camera: 'camera-1', view: 'live' }),
+    );
+    vi.mocked(api.getMicrophoneManager().getState).mockImplementation(
+      () => microphoneState,
+    );
+    vi.mocked(api.getMicrophoneManager().unmute).mockImplementation(async () => {
+      microphoneState.connected = true;
+      microphoneState.muted = false;
+    });
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            lock_navigation: false,
+          },
+        },
+      }),
+    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
+            live_provider: 'go2rtc',
+            call: {
+              stream: 'doorbell',
+            },
+          }),
+        },
+      ]),
+    );
+    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+      createMediaLoadedInfo({ mediaPlayerController }),
+    );
+
+    const manager = new CallManager(api);
+    await manager.startCall();
+    await manager.onMediaLoaded(
+      createMediaLoadedInfo({ mediaPlayerController }),
+      'camera-1',
+    );
+
+    expect(manager.shouldEndOnViewChange()).toBe(true);
+    expect(manager.isNavigationLocked()).toBe(false);
   });
 
   it('should start a call and transition into an active session', async () => {
@@ -58,12 +142,8 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
-              auto_enable_microphone: true,
-              auto_enable_speaker: true,
-              lock_navigation: true,
             },
           }),
         },
@@ -87,7 +167,6 @@ describe('CallManager', () => {
       state: 'connecting_call',
       camera: 'camera-1',
       stream: 'doorbell',
-      lockNavigation: true,
     });
 
     await manager.onMediaLoaded(createMediaLoadedInfo({ mediaPlayerController }));
@@ -110,7 +189,7 @@ describe('CallManager', () => {
     expect(manager.getState().state).toBe('idle');
   });
 
-  it('should reject call mode outside the live view', async () => {
+  it('should reject calls outside the live view', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'clips' }),
@@ -128,7 +207,7 @@ describe('CallManager', () => {
     expect(manager.getState().state).toBe('idle');
   });
 
-  it('should reject call mode when no active view is selected', async () => {
+  it('should reject calls when no active view is selected', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(null);
 
@@ -137,7 +216,7 @@ describe('CallManager', () => {
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
       expect.objectContaining({
-        message: 'Call mode can only be started from the live view',
+        message: 'Call can only be started from the live view',
       }),
     );
   });
@@ -168,8 +247,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'ha',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -196,8 +274,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -211,7 +288,7 @@ describe('CallManager', () => {
     await expect(manager.startCall()).resolves.toBe(false);
   });
 
-  it('should reject call mode without an active camera config', async () => {
+  it('should reject calls without an active camera config', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
@@ -223,36 +300,7 @@ describe('CallManager', () => {
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
       expect.objectContaining({
-        message: 'Call mode can only be started from the live view',
-      }),
-    );
-  });
-
-  it('should reject when call mode is disabled', async () => {
-    const api = createCardAPI();
-    vi.mocked(api.getViewManager().getView).mockReturnValue(
-      createView({ camera: 'camera-1', view: 'live' }),
-    );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call_mode: {
-              enabled: false,
-            },
-          }),
-        },
-      ]),
-    );
-
-    const manager = new CallManager(api);
-    await expect(manager.startCall()).resolves.toBe(false);
-
-    expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
-      expect.objectContaining({
-        message: 'Call mode is not enabled for the selected camera',
+        message: 'Call can only be started from the live view',
       }),
     );
   });
@@ -268,9 +316,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: {
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
-            },
+            call: {},
           } as never,
         },
       ]),
@@ -305,8 +351,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -319,48 +364,7 @@ describe('CallManager', () => {
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
       expect.objectContaining({
-        message: 'Call mode cannot be started while a substream override is active',
-      }),
-    );
-  });
-
-  it('should preserve the call stream on manual end when configured', async () => {
-    const api = createCardAPI();
-    const mediaPlayerController = mock<MediaPlayerController>();
-    vi.mocked(api.getViewManager().getView).mockReturnValue(
-      createView({ camera: 'camera-1', view: 'live' }),
-    );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
-              stream: 'doorbell',
-              resume_normal_stream_on_end: false,
-            },
-          }),
-        },
-      ]),
-    );
-    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
-      createMediaLoadedInfo({ mediaPlayerController }),
-    );
-
-    const manager = new CallManager(api);
-    await manager.startCall();
-
-    vi.mocked(api.getViewManager().setViewByParameters).mockClear();
-
-    await expect(manager.endCall()).resolves.toBe(true);
-
-    const calls = vi.mocked(api.getViewManager().setViewByParameters).mock.calls;
-    expect(calls).toHaveLength(2);
-    expect(calls[1]?.[0]).toEqual(
-      expect.objectContaining({
-        modifiers: expect.arrayContaining([expect.any(CallClearStateViewModifier)]),
+        message: 'Call cannot be started while a substream override is active',
       }),
     );
   });
@@ -377,8 +381,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -407,50 +410,6 @@ describe('CallManager', () => {
     expect(manager.getState().state).toBe('in_call');
   });
 
-  it('should keep speaker and microphone muted when auto-enable is disabled', async () => {
-    const api = createCardAPI();
-    const mediaPlayerController = mock<MediaPlayerController>();
-    vi.mocked(api.getViewManager().getView).mockReturnValue(
-      createView({ camera: 'camera-1', view: 'live' }),
-    );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
-              stream: 'doorbell',
-              auto_enable_microphone: false,
-              auto_enable_speaker: false,
-            },
-          }),
-        },
-      ]),
-    );
-    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
-      createMediaLoadedInfo({ mediaPlayerController }),
-    );
-
-    const manager = new CallManager(api);
-    await manager.startCall();
-
-    mediaPlayerController.mute.mockClear();
-    vi.mocked(api.getMicrophoneManager().mute).mockClear();
-
-    await manager.onMediaLoaded(
-      createMediaLoadedInfo({ mediaPlayerController }),
-      'camera-1',
-    );
-
-    expect(mediaPlayerController.mute).toBeCalled();
-    expect(mediaPlayerController.unmute).not.toBeCalled();
-    expect(api.getMicrophoneManager().mute).toBeCalled();
-    expect(api.getMicrophoneManager().unmute).not.toBeCalled();
-    expect(manager.getState().state).toBe('in_call');
-  });
-
   it('should ignore additional media loaded events once the call is active', async () => {
     const api = createCardAPI();
     const mediaPlayerController = mock<MediaPlayerController>();
@@ -463,8 +422,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -501,6 +459,49 @@ describe('CallManager', () => {
     await expect(manager.endCall()).resolves.toBe(false);
   });
 
+  it('should not auto-unmute the microphone when live microphone auto_unmute excludes call', async () => {
+    const api = createCardAPI();
+    const mediaPlayerController = mock<MediaPlayerController>();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ camera: 'camera-1', view: 'live' }),
+    );
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            auto_unmute: [],
+          },
+        },
+      }),
+    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
+            live_provider: 'go2rtc',
+            call: {
+              stream: 'doorbell',
+            },
+          }),
+        },
+      ]),
+    );
+    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+      createMediaLoadedInfo({ mediaPlayerController }),
+    );
+
+    const manager = new CallManager(api);
+    await manager.startCall();
+    await manager.onMediaLoaded(
+      createMediaLoadedInfo({ mediaPlayerController }),
+      'camera-1',
+    );
+
+    expect(api.getMicrophoneManager().unmute).not.toBeCalled();
+    expect(manager.isNavigationLocked()).toBe(false);
+  });
+
   it('should end immediately without view changes when requested', async () => {
     const api = createCardAPI();
     const mediaPlayerController = mock<MediaPlayerController>();
@@ -513,8 +514,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -536,7 +536,47 @@ describe('CallManager', () => {
     expect(manager.getState().state).toBe('idle');
   });
 
-  it('should fall back to the generic media info when the camera-specific entry is missing', async () => {
+  it('should not auto-mute the microphone when live microphone auto_mute excludes call', async () => {
+    const api = createCardAPI();
+    const mediaPlayerController = mock<MediaPlayerController>();
+    vi.mocked(api.getViewManager().getView).mockReturnValue(
+      createView({ camera: 'camera-1', view: 'live' }),
+    );
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            auto_mute: [],
+          },
+        },
+      }),
+    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
+            live_provider: 'go2rtc',
+            call: {
+              stream: 'doorbell',
+            },
+          }),
+        },
+      ]),
+    );
+    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+      createMediaLoadedInfo({ mediaPlayerController }),
+    );
+
+    const manager = new CallManager(api);
+    await manager.startCall();
+    await manager.endCall();
+
+    expect(api.getMicrophoneManager().mute).not.toBeCalled();
+    expect(api.getMicrophoneManager().disconnect).toBeCalled();
+  });
+
+  it('should require camera-specific media info when ending a call', async () => {
     const api = createCardAPI();
     const mediaPlayerController = mock<MediaPlayerController>();
     vi.mocked(api.getViewManager().getView).mockReturnValue(
@@ -548,8 +588,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -569,7 +608,7 @@ describe('CallManager', () => {
     mediaPlayerController.mute.mockClear();
     await manager.endCall({ modifyViewContext: false });
 
-    expect(mediaPlayerController.mute).toBeCalled();
+    expect(mediaPlayerController.mute).not.toBeCalled();
   });
 
   it('should roll back a failed call setup on live errors', async () => {
@@ -584,8 +623,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -627,8 +665,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -658,10 +695,8 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
-              resume_normal_stream_on_end: true,
             },
           }),
         },
@@ -707,8 +742,7 @@ describe('CallManager', () => {
           cameraID: 'camera-1',
           config: createCameraConfig({
             live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
+            call: {
               stream: 'doorbell',
             },
           }),
@@ -730,59 +764,4 @@ describe('CallManager', () => {
     expect(api.getMessageManager().setMessageIfHigherPriority).not.toBeCalled();
   });
 
-  it('should suppress the regular menu during a call by default', async () => {
-    const api = createCardAPI();
-    vi.mocked(api.getViewManager().getView).mockReturnValue(
-      createView({ camera: 'camera-1', view: 'live' }),
-    );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
-
-    const manager = new CallManager(api);
-
-    expect(manager.shouldHideMenuDuringCall()).toBe(false);
-
-    await manager.startCall();
-
-    expect(manager.shouldHideMenuDuringCall()).toBe(true);
-  });
-
-  it('should allow the regular menu during a call when configured', async () => {
-    const api = createCardAPI();
-    vi.mocked(api.getViewManager().getView).mockReturnValue(
-      createView({ camera: 'camera-1', view: 'live' }),
-    );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call_mode: {
-              enabled: true,
-              stream: 'doorbell',
-              hide_menu_during_call: false,
-            },
-          }),
-        },
-      ]),
-    );
-
-    const manager = new CallManager(api);
-    await manager.startCall();
-
-    expect(manager.shouldHideMenuDuringCall()).toBe(false);
-  });
 });

@@ -177,6 +177,31 @@ automations:
 
 ## Cameras
 
+### Call with a dedicated stream
+
+This example configures Call as the canonical 2-way-audio workflow for a doorbell camera. Tapping the `call` button switches the camera from its normal live stream to a dedicated low-latency stream, automatically unmutes the microphone when the call connects, mutes it again when the call ends, and hides the regular menu while the call is active.
+
+```yaml
+type: custom:advanced-camera-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: go2rtc
+    go2rtc:
+      stream: front_door_main
+    call:
+      stream: front_door_intercom
+live:
+  microphone:
+    auto_unmute:
+      - call
+    auto_mute:
+      - call
+    lock_navigation: true
+menu:
+  auto_hide:
+    - call
+```
+
 ### Frigate camera without a `camera_entity`
 
 In this example, there is no Home Assistant entity linked to the camera, just a `frigate` camera name:

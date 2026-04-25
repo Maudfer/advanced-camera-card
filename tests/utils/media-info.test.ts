@@ -27,10 +27,11 @@ describe('createMediaLoadedInfo', () => {
     Object.defineProperty(img, 'naturalWidth', { value: 10 });
     Object.defineProperty(img, 'naturalHeight', { value: 20 });
 
-    expect(createMediaLoadedInfo(img, options)).toEqual({
+    expect(createMediaLoadedInfo(img, { ...options, cameraID: 'camera.office' })).toEqual({
       width: 10,
       height: 20,
       ...options,
+      cameraID: 'camera.office',
     });
   });
 
@@ -100,13 +101,14 @@ describe('dispatchMediaLoadedEvent', () => {
     Object.defineProperty(img, 'naturalWidth', { value: 10 });
     Object.defineProperty(img, 'naturalHeight', { value: 20 });
 
-    dispatchMediaLoadedEvent(div, img, options);
+    dispatchMediaLoadedEvent(div, img, { ...options, cameraID: 'camera.office' });
     expect(handler).toBeCalledWith(
       expect.objectContaining({
         detail: {
           width: 10,
           height: 20,
           ...options,
+          cameraID: 'camera.office',
         },
       }),
     );
@@ -146,8 +148,12 @@ describe('dispatchMediaUnloadedEvent', () => {
     const div = document.createElement('div');
     div.addEventListener('advanced-camera-card:media:unloaded', handler);
 
-    dispatchMediaUnloadedEvent(div);
-    expect(handler).toBeCalled();
+    dispatchMediaUnloadedEvent(div, { cameraID: 'camera.office' });
+    expect(handler).toBeCalledWith(
+      expect.objectContaining({
+        detail: { cameraID: 'camera.office' },
+      }),
+    );
   });
 });
 

@@ -5,6 +5,7 @@ import { CardMediaLoadedAPI } from './types';
 
 export class MediaLoadedInfoManager {
   private _api: CardMediaLoadedAPI;
+  private _selectedCameraID: string | null = null;
   private _current: MediaLoadedInfo | null = null;
   private _lastKnown: MediaLoadedInfo | null = null;
   private _currentByCamera = new Map<string, MediaLoadedInfo>();
@@ -20,10 +21,6 @@ export class MediaLoadedInfoManager {
 
   public set(
     mediaLoadedInfo: MediaLoadedInfo,
-    options?: {
-      cameraID?: string | null;
-      selectCurrent?: boolean;
-    },
   ): void {
     if (!isValidMediaLoadedInfo(mediaLoadedInfo)) {
       return;
@@ -35,13 +32,13 @@ export class MediaLoadedInfoManager {
       mediaLoadedInfo,
     );
 
-    const cameraID = options?.cameraID ?? undefined;
+    const cameraID = mediaLoadedInfo.cameraID ?? undefined;
     if (cameraID) {
       this._currentByCamera.set(cameraID, mediaLoadedInfo);
       this._lastKnownByCamera.set(cameraID, mediaLoadedInfo);
     }
 
-    if (options?.selectCurrent ?? true) {
+    if (!cameraID || !this._selectedCameraID || cameraID === this._selectedCameraID) {
       this._current = mediaLoadedInfo;
       this._lastKnown = mediaLoadedInfo;
 
@@ -68,6 +65,18 @@ export class MediaLoadedInfoManager {
       return this._lastKnownByCamera.get(cameraID) ?? null;
     }
     return this._lastKnown;
+  }
+
+  public setSelected(cameraID?: string | null): void {
+    const normalizedCameraID = cameraID ?? null;
+    if (this._selectedCameraID === normalizedCameraID) {
+      return;
+    }
+
+    this._selectedCameraID = normalizedCameraID;
+    const mediaLoadedInfo = normalizedCameraID ? this.get(normalizedCameraID) : null;
+    this._current = mediaLoadedInfo;
+    this._api.getConditionStateManager().setState({ mediaLoadedInfo });
   }
 
   public clear(options?: { cameraID?: string | null; all?: boolean }): void {

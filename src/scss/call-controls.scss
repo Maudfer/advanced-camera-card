@@ -1,0 +1,61 @@
+:host {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 16px;
+  display: block;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.overlay {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.panel {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-radius: var(--advanced-camera-card-button-border-radius);
+  color: var(--advanced-camera-card-call-controls-color);
+  background: var(--advanced-camera-card-call-controls-background);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+}
+
+.panel.controls {
+  flex-wrap: nowrap;
+}
+
+.loading {
+  justify-content: center;
+}
+
+.title {
+  color: var(--advanced-camera-card-call-controls-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding-inline-end: 4px;
+  white-space: nowrap;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+ha-icon-button {
+  color: var(--advanced-camera-card-call-controls-color);
+  background: var(--advanced-camera-card-call-controls-button-background);
+  border-radius: var(--advanced-camera-card-button-border-radius);
+}
+
+ha-icon-button.critical {
+  color: var(--advanced-camera-card-call-controls-critical-color);
+}
