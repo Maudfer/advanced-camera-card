@@ -268,10 +268,8 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
       case 'microphone':
         return {
           result:
-            (condition.connected === undefined ||
-              newState?.microphone?.connected === condition.connected) &&
-            (condition.muted === undefined ||
-              newState?.microphone?.muted === condition.muted),
+            condition.muted === undefined ||
+            newState?.microphone?.muted === condition.muted,
         };
       case 'key':
         return {

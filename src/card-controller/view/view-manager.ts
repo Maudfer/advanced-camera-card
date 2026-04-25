@@ -326,6 +326,7 @@ export class ViewManager implements ViewManagerInterface {
 
   private _setView(view: Readonly<View> | null): void {
     const oldView = this._view;
+    const majorMediaChange = this.hasMajorMediaChange(oldView, view);
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
@@ -336,7 +337,7 @@ export class ViewManager implements ViewManagerInterface {
     this._view = view;
     this._epoch = this._createEpoch(oldView);
 
-    if (this.hasMajorMediaChange(oldView)) {
+    if (majorMediaChange) {
       this._api.getMediaLoadedInfoManager().clear();
     }
 
@@ -354,5 +355,15 @@ export class ViewManager implements ViewManagerInterface {
     });
 
     this._api.getCardElementManager().update();
+
+    if (
+      view?.is('live') &&
+      majorMediaChange &&
+      !getCallStream(view) &&
+      !this._api.getCallManager().isActive() &&
+      !!this._api.getConfigManager().getConfig()?.live.microphone.always_connected
+    ) {
+      void this._api.getCallManager().startCall();
+    }
   }
 }

@@ -65,9 +65,6 @@ export class InitializationManager {
       InitializationAspect.LANGUAGES,
       InitializationAspect.SIDE_LOAD_ELEMENTS,
       InitializationAspect.CAMERAS,
-      ...(this._api.getMicrophoneManager().shouldConnectOnInitialization()
-        ? [InitializationAspect.MICROPHONE_CONNECT]
-        : []),
       InitializationAspect.VIEW,
       InitializationAspect.INITIAL_TRIGGER,
     ]);
@@ -113,19 +110,6 @@ export class InitializationManager {
           this._api.createCameraManager();
           return await this._api.getCameraManager().initializeCamerasFromConfig();
         },
-
-        // Connecting the microphone (if configured) is considered mandatory to
-        // avoid issues with some cameras that only allow 2-way audio on the
-        // first stream initialized.
-        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1235
-        ...(this._api.getMicrophoneManager().shouldConnectOnInitialization() && {
-          [InitializationAspect.MICROPHONE_CONNECT]: async () => {
-            // Recreate the microphone manager to guarantee an immediate
-            // re-render.
-            this._api.createMicrophoneManager();
-            return await this._api.getMicrophoneManager().connect();
-          },
-        }),
       }))
     ) {
       return;

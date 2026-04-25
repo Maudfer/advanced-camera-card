@@ -15,7 +15,7 @@ import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { QueryResults } from '../../../src/view/query-results';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
-import { createCardAPI, createEventQuery, createView } from '../../test-utils';
+import { createCardAPI, createConfig, createEventQuery, createView } from '../../test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {
   const api = createCardAPI();
@@ -53,6 +53,68 @@ describe('should act correctly when view is set', () => {
       displayMode: 'grid',
     });
     expect(api.getCardElementManager().update).toBeCalled();
+  });
+
+  it('should automatically start a call when always_connected is enabled and a live view loads', () => {
+    const view = createView({
+      view: 'live',
+      camera: 'camera',
+    });
+
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(view);
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            always_connected: true,
+          },
+        },
+      }),
+    );
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+
+    manager.setViewDefault();
+
+    expect(api.getCallManager().startCall).toBeCalled();
+  });
+
+  it('should not automatically start a call when the live view is already in call context', () => {
+    const view = createView({
+      view: 'live',
+      camera: 'camera',
+      context: {
+        call: {
+          camera: 'camera',
+          stream: 'doorbell',
+        },
+      },
+    });
+
+    const factory = mock<ViewFactory>();
+    factory.getViewDefault.mockReturnValue(view);
+
+    const api = createInitializedCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        live: {
+          microphone: {
+            always_connected: true,
+          },
+        },
+      }),
+    );
+    vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
+
+    const manager = new ViewManager(api, { viewFactory: factory });
+
+    manager.setViewDefault();
+
+    expect(api.getCallManager().startCall).not.toBeCalled();
   });
 
   it('view with minor changes without media clearing or scroll', () => {

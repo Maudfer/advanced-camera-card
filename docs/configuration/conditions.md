@@ -210,7 +210,6 @@ conditions:
 | Parameter   | Description                                                                                                            |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `condition` | Must be `microphone`.                                                                                                  |
-| `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
 | `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively.          |
 
 When multiple parameters are specified they must all match for the condition to

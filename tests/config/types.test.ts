@@ -215,7 +215,7 @@ describe('config defaults', () => {
       },
       menu: {
         alignment: 'left',
-        auto_hide: ['call'],
+        auto_hide: [],
         button_size: 40,
         buttons: {
           call: {
@@ -893,7 +893,7 @@ describe('config defaults', () => {
         state: 'down',
       },
       { condition: 'media_loaded', media_loaded: true },
-      { condition: 'microphone', connected: true, muted: true },
+      { condition: 'microphone', muted: true },
       { condition: 'not', conditions: [{ condition: 'initialized' }] },
       {
         condition: 'numeric_state',

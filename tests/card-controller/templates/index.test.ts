@@ -1,38 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { TemplateRenderer } from '../../../src/card-controller/templates/index';
 import { createHASS } from '../../test-utils';
 
-const renderTemplate = vi.fn(
-  (_hass: unknown, template: string, context?: Record<string, unknown>) => {
-    return template
-      .replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_match, expression: string) => {
-        const value = expression.split('.').reduce<unknown>((current, key) => {
-          if (current && typeof current === 'object') {
-            return (current as Record<string, unknown>)[key];
-          }
-          return undefined;
-        }, context);
-
-        return value === undefined || value === null ? '' : String(value);
-      })
-      .trimEnd();
-  },
-);
-
 describe('TemplateRenderer', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.stubGlobal('window', {
-      haNunjucks: {
-        renderTemplate,
-      },
-    });
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   describe('renderRecursively', () => {
     it('should render string templates with camera context', () => {
       const renderer = new TemplateRenderer();
@@ -177,19 +147,6 @@ describe('TemplateRenderer', () => {
         conditionState: {},
       });
       expect(result).toBe('Value:');
-    });
-
-    it('should return the raw string when no template renderer is available', () => {
-      vi.unstubAllGlobals();
-
-      const renderer = new TemplateRenderer();
-      const hass = createHASS();
-
-      const result = renderer.renderRecursively(hass, 'Value: {{ acc.camera }}', {
-        conditionState: { camera: 'camera.office' },
-      });
-
-      expect(result).toBe('Value: {{ acc.camera }}');
     });
   });
 });

@@ -1,22 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderTemplate } from 'ha-nunjucks';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TemplateRenderer } from '../../src/card-controller/templates';
 import { ConditionsTriggerData, ConditionState } from '../../src/conditions/types';
 import { createHASS } from '../test-utils';
 
-const renderTemplate = vi.fn();
+// ha-nunjucks attempts to make websocket calls initially so mock it out.
+vi.mock('ha-nunjucks');
 
 describe('TemplateRenderer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal('window', {
-      haNunjucks: {
-        renderTemplate,
-      },
-    });
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
   });
 
   it('should render data', () => {

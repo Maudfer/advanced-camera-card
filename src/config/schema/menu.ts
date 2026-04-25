@@ -33,7 +33,7 @@ const hiddenButtonDefault = {
 
 export const menuConfigDefault = {
   alignment: 'left' as const,
-  auto_hide: ['call' as const],
+  auto_hide: [] as Array<(typeof MENU_AUTO_HIDE_CONDITIONS)[number]>,
   button_size: 40,
   buttons: {
     // Clone per key so each button has its own default object. This avoids

@@ -129,9 +129,6 @@ describe('InitializationManager', () => {
     it('successfully with microphone if configured', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(
-        api.getMicrophoneManager().shouldConnectOnInitialization,
-      ).mockReturnValue(true);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(loadLanguages).mockResolvedValue(true);
       vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
@@ -143,7 +140,7 @@ describe('InitializationManager', () => {
 
       await manager.initializeMandatory();
 
-      expect(api.getMicrophoneManager().connect).toBeCalled();
+      expect(api.getMicrophoneManager().connect).not.toBeCalled();
     });
 
     it('with message set during initialization', async () => {

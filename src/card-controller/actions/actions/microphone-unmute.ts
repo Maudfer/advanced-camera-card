@@ -6,6 +6,10 @@ export class MicrophoneUnmuteAction extends AdvancedCameraCardAction<GeneralActi
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    if (!api.getCallManager().isActive()) {
+      return;
+    }
+
     await api.getMicrophoneManager().unmute();
   }
 }
