@@ -19,9 +19,7 @@ export class MediaLoadedInfoManager {
     this.clear({ all: true });
   }
 
-  public set(
-    mediaLoadedInfo: MediaLoadedInfo,
-  ): void {
+  public set(mediaLoadedInfo: MediaLoadedInfo): void {
     if (!isValidMediaLoadedInfo(mediaLoadedInfo)) {
       return;
     }

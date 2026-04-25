@@ -15,7 +15,12 @@ import { ViewMedia, ViewMediaType } from '../../../src/view/item';
 import { QueryResults } from '../../../src/view/query-results';
 import { UnifiedQuery } from '../../../src/view/unified-query';
 import { View } from '../../../src/view/view';
-import { createCardAPI, createConfig, createEventQuery, createView } from '../../test-utils';
+import {
+  createCardAPI,
+  createConfig,
+  createEventQuery,
+  createView,
+} from '../../test-utils';
 
 const createInitializedCardAPI = (initialized?: boolean): CardController => {
   const api = createCardAPI();
@@ -301,18 +306,27 @@ describe('should respect microphone navigation lock', () => {
     vi.mocked(api.getMicrophoneManager().getState).mockImplementation(
       () => microphoneState,
     );
-    vi.mocked(api.getCallManager().shouldEndOnViewChange).mockReturnValue(false);
+    vi.mocked(api.getCallManager().prepareViewChange).mockReturnValue(false);
 
     const manager = new ViewManager(api, { viewFactory: factory });
     manager.setViewDefault();
 
     microphoneState.connected = true;
     microphoneState.muted = false;
-    vi.mocked(api.getCallManager().shouldEndOnViewChange).mockReturnValue(true);
+    vi.mocked(api.getCallManager().prepareViewChange).mockImplementation((view) => {
+      view.removeContext('call');
+      return true;
+    });
 
     manager.setViewByParameters({ camera: 'camera-2' });
 
-    expect(api.getCallManager().endCall).toBeCalledWith({
+    expect(api.getCallManager().prepareViewChange).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        majorMediaChange: true,
+      }),
+    );
+    expect(api.getCallManager().endCall).not.toBeCalledWith({
       modifyViewContext: false,
     });
     expect(manager.getView()?.camera).toBe('camera-2');

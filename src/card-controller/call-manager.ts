@@ -1,10 +1,11 @@
 import { CameraConfig } from '../config/schema/cameras';
 import { localize } from '../localize/localize';
 import { MediaLoadedInfo } from '../types';
-import { getResolvedLiveProvider } from '../utils/live-provider';
+import { configuredLiveProviderSupports2WayAudio } from '../utils/live-provider';
 import { shouldLockNavigation } from '../utils/microphone';
 import { hasSubstream } from '../utils/substream';
 import { CallViewState } from '../utils/call';
+import { View } from '../view/view';
 import { MergeContextViewModifier } from './view/modifiers/merge-context';
 import { RemoveContextViewModifier } from './view/modifiers/remove-context';
 import { CardCallAPI } from './types';
@@ -24,6 +25,11 @@ const CALL_IDLE_STATE: CallSessionState = {
 
 export interface CallEndOptions {
   modifyViewContext?: boolean;
+}
+
+export interface CallViewChangeOptions {
+  ignoreNavigationLock?: boolean;
+  majorMediaChange?: boolean;
 }
 
 export class CallManager {
@@ -50,8 +56,20 @@ export class CallManager {
     );
   }
 
-  public shouldEndOnViewChange(): boolean {
-    return this.isActive();
+  public prepareViewChange(view: View, options?: CallViewChangeOptions): boolean {
+    if (
+      !options?.ignoreNavigationLock &&
+      !!options?.majorMediaChange &&
+      this.isActive()
+    ) {
+      void this.endCall({
+        modifyViewContext: false,
+      });
+      view.removeContext('call');
+      return true;
+    }
+
+    return false;
   }
 
   public reset(): void {
@@ -79,7 +97,7 @@ export class CallManager {
       return await this._fail(localize('error.call_no_stream'));
     }
 
-    if (getResolvedLiveProvider(cameraConfig) !== 'go2rtc') {
+    if (!configuredLiveProviderSupports2WayAudio(cameraConfig)) {
       return await this._fail(localize('error.call_provider_unsupported'));
     }
 

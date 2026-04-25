@@ -42,10 +42,9 @@ cameras:
 
 ## Usage
 
-- The camera will always load _without_ the microphone connected, unless the
-  [`always_connected`](../configuration/live.md?id=microphone) microphone option is
-  set to `true`.
-- In the live view, start speaking by tapping the `call` button.
+- If [`always_connected`](../configuration/live.md?id=microphone) is `true`, the
+  card will automatically start the call flow when the live view loads.
+- Otherwise, in the live view, start speaking by tapping the `call` button.
 - Once the call is active, use the microphone button in the in-call overlay to
   mute or unmute yourself.
 - The separate `microphone` menu button is not shown in the live view. It may

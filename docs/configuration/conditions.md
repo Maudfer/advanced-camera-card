@@ -207,10 +207,10 @@ conditions:
     # [...]
 ```
 
-| Parameter   | Description                                                                                                            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `condition` | Must be `microphone`.                                                                                                  |
-| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively.          |
+| Parameter   | Description                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `microphone`.                                                                                         |
+| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively. |
 
 When multiple parameters are specified they must all match for the condition to
 match.

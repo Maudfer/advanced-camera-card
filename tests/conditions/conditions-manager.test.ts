@@ -83,7 +83,10 @@ describe('ConditionsManager', () => {
 
       it('should match any call state change when no state filter is provided', () => {
         const stateManager = new ConditionStateManager();
-        const manager = new ConditionsManager([{ condition: 'call' as const }], stateManager);
+        const manager = new ConditionsManager(
+          [{ condition: 'call' as const }],
+          stateManager,
+        );
         const listener = vi.fn();
         manager.addListener(listener);
 

@@ -8,6 +8,7 @@ import {
 } from '../../config/schema/types.js';
 import { RawAdvancedCameraCardConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
+import { getCallStream } from '../../utils/call.js';
 import { getParseError } from '../../utils/zod/parse-errors.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
@@ -179,9 +180,18 @@ export class ConfigManager {
     runIfChanged(
       (config) => config.live.microphone.always_connected,
       () => {
-        this._api
-          .getInitializationManager()
-          .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
+        if (!overriddenConfig.live.microphone.always_connected) {
+          return;
+        }
+
+        const view = this._api.getViewManager().getView();
+        if (
+          view?.is('live') &&
+          !getCallStream(view) &&
+          !this._api.getCallManager().isActive()
+        ) {
+          void this._api.getCallManager().startCall();
+        }
       },
       true,
     );

@@ -142,20 +142,13 @@ export class ViewManager implements ViewManagerInterface {
   }
 
   private _allowViewChange(view: View, options?: ViewFactoryOptions): boolean {
-    if (
-      !options?.ignoreNavigationLock &&
-      this._view &&
-      this._api.getCallManager().shouldEndOnViewChange() &&
-      this.hasMajorMediaChange(this._view, view)
-    ) {
-      void this._api.getCallManager().endCall({
-        modifyViewContext: false,
-      });
-      view.removeContext('call');
-      return true;
-    }
+    const ignoreNavigationLock = this._api.getCallManager().prepareViewChange(view, {
+      ignoreNavigationLock: options?.ignoreNavigationLock,
+      majorMediaChange: this.hasMajorMediaChange(this._view, view),
+    });
 
     return (
+      ignoreNavigationLock ||
       !!options?.ignoreNavigationLock ||
       !shouldLockNavigation(
         this._api.getConfigManager().getConfig(),

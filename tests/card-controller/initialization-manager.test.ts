@@ -41,9 +41,6 @@ describe('InitializationManager', () => {
       const manager = new InitializationManager(api);
 
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(
-        api.getMicrophoneManager().shouldConnectOnInitialization,
-      ).mockReturnValue(true);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
     });
@@ -93,7 +90,6 @@ describe('InitializationManager', () => {
       expect(manager.isInitialized(InitializationAspect.LANGUAGES)).toBeFalsy();
       expect(manager.isInitialized(InitializationAspect.SIDE_LOAD_ELEMENTS)).toBeFalsy();
       expect(manager.isInitialized(InitializationAspect.CAMERAS)).toBeFalsy();
-      expect(manager.isInitialized(InitializationAspect.MICROPHONE_CONNECT)).toBeFalsy();
       expect(manager.isInitialized(InitializationAspect.VIEW)).toBeFalsy();
 
       await manager.initializeMandatory();
@@ -121,7 +117,6 @@ describe('InitializationManager', () => {
         manager.isInitialized(InitializationAspect.SIDE_LOAD_ELEMENTS),
       ).toBeTruthy();
       expect(manager.isInitialized(InitializationAspect.CAMERAS)).toBeTruthy();
-      expect(manager.isInitialized(InitializationAspect.MICROPHONE_CONNECT)).toBeFalsy();
       expect(manager.isInitialized(InitializationAspect.VIEW)).toBeTruthy();
       expect(manager.isInitialized(InitializationAspect.INITIAL_TRIGGER)).toBeTruthy();
     });

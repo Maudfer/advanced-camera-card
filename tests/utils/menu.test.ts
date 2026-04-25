@@ -20,8 +20,6 @@ describe('shouldAutoHideMenu', () => {
   it('should not hide when no auto-hide conditions are configured', () => {
     const config = menuConfigSchema.parse({ auto_hide: [] });
 
-    expect(shouldAutoHideMenu(config, { callActive: true, casted: true })).toBe(
-      false,
-    );
+    expect(shouldAutoHideMenu(config, { callActive: true, casted: true })).toBe(false);
   });
 });

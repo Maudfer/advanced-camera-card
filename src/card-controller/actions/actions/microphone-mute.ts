@@ -6,6 +6,10 @@ export class MicrophoneMuteAction extends AdvancedCameraCardAction<GeneralAction
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    if (!api.getCallManager().isActive()) {
+      return;
+    }
+
     api.getMicrophoneManager().mute();
   }
 }

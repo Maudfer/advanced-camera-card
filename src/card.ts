@@ -457,10 +457,7 @@ class AdvancedCameraCard extends LitElement {
               .configManager=${this._controller.getConfigManager()}
               .hide=${!!this._controller.getMessageManager().hasMessage()}
               .microphoneState=${microphoneState}
-              .navigationLocked=${shouldLockNavigation(
-                this._config,
-                microphoneState,
-              )}
+              .navigationLocked=${shouldLockNavigation(this._config, microphoneState)}
               .conditionStateManager=${this._controller.getConditionStateManager()}
               .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
@@ -471,7 +468,8 @@ class AdvancedCameraCard extends LitElement {
             <advanced-camera-card-call-controls
               .callState=${callState.state}
               .microphoneMuted=${microphoneState?.muted ?? true}
-              .speakerMuted=${callMediaLoadedInfo?.mediaPlayerController?.isMuted() ?? true}
+              .speakerMuted=${callMediaLoadedInfo?.mediaPlayerController?.isMuted() ??
+              true}
               .hasSpeaker=${!!callMediaLoadedInfo?.mediaPlayerController}
               .cardWideConfig=${cardWideConfig}
             ></advanced-camera-card-call-controls>

@@ -30,15 +30,6 @@ export class MicrophoneManager {
     this._setState();
   }
 
-  public shouldConnectOnInitialization(): boolean {
-    return (
-      !!this._api.getConfigManager().getConfig()?.live.microphone?.always_connected &&
-      // If it won't be possible to connect the microphone at all, we do not
-      // block the initialization of the card (the microphone just won't work)
-      this.isSupported()
-    );
-  }
-
   public isSupported(): boolean {
     // Some browsers will have mediaDevices/getUserMedia as undefined if
     // accessed over http.

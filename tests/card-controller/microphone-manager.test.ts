@@ -244,58 +244,6 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
 
-  describe('should require initialization', async () => {
-    it('when configured and supported', async () => {
-      const api = createCardAPI();
-      const manager = new MicrophoneManager(api);
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          live: {
-            microphone: {
-              always_connected: true,
-            },
-          },
-        }),
-      );
-
-      await manager.connect();
-
-      expect(manager.shouldConnectOnInitialization()).toBeTruthy();
-    });
-
-    it('when configured but not supported', async () => {
-      vi.stubGlobal('navigator', medialessNavigatorMock);
-
-      const api = createCardAPI();
-      const manager = new MicrophoneManager(api);
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          live: {
-            microphone: {
-              always_connected: true,
-            },
-          },
-        }),
-      );
-
-      await manager.connect();
-
-      expect(manager.shouldConnectOnInitialization()).toBeFalsy();
-    });
-
-    it('when neither configured nor supported', async () => {
-      vi.stubGlobal('navigator', medialessNavigatorMock);
-
-      const api = createCardAPI();
-      const manager = new MicrophoneManager(api);
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-
-      await manager.connect();
-
-      expect(manager.shouldConnectOnInitialization()).toBeFalsy();
-    });
-  });
-
   it('should initialize', () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);

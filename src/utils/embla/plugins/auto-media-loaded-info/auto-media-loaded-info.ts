@@ -95,7 +95,9 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
       return;
     }
 
-    const index = slides.indexOf(slide as HTMLElement & AdvancedCameraCardMediaLoadedEventTarget);
+    const index = slides.indexOf(
+      slide as HTMLElement & AdvancedCameraCardMediaLoadedEventTarget,
+    );
     if (index === -1) {
       return;
     }
@@ -112,7 +114,9 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
       return;
     }
 
-    const index = slides.indexOf(slide as HTMLElement & AdvancedCameraCardMediaLoadedEventTarget);
+    const index = slides.indexOf(
+      slide as HTMLElement & AdvancedCameraCardMediaLoadedEventTarget,
+    );
     if (index === -1) {
       return;
     }

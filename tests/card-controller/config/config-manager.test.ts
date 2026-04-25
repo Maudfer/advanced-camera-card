@@ -10,7 +10,12 @@ import { Automation } from '../../../src/config/schema/automations';
 import { AdvancedCameraCardCondition } from '../../../src/config/schema/conditions/types';
 import { advancedCameraCardConfigSchema } from '../../../src/config/schema/types';
 import { createGeneralAction } from '../../../src/utils/action';
-import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
+import {
+  createCardAPI,
+  createConfig,
+  createView,
+  flushPromises,
+} from '../../test-utils';
 
 /**
  * Create a ConfigManager test setup with real AutomationsManager and ConditionStateManager.
@@ -402,6 +407,10 @@ describe('ConfigManager', () => {
         const api = createCardAPI();
         const stateManager = new ConditionStateManager();
         vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+        vi.mocked(api.getViewManager().getView).mockReturnValue(
+          createView({ view: 'live', camera: 'camera.office' }),
+        );
+        vi.mocked(api.getCallManager().isActive).mockReturnValue(false);
 
         const manager = new ConfigManager(api);
         const config = {
@@ -419,15 +428,11 @@ describe('ConfigManager', () => {
 
         manager.setConfig(config);
 
-        expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
-          InitializationAspect.MICROPHONE_CONNECT,
-        );
+        expect(api.getCallManager().startCall).not.toHaveBeenCalled();
 
         stateManager.setState({ fullscreen: true });
 
-        expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
-          InitializationAspect.MICROPHONE_CONNECT,
-        );
+        expect(api.getCallManager().startCall).toHaveBeenCalled();
       });
     });
 

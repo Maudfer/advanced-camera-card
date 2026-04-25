@@ -4,6 +4,7 @@ import { CallManager } from '../../src/card-controller/call-manager';
 import { MediaPlayerController } from '../../src/types';
 import {
   createConfig,
+  createCapabilities,
   createCameraConfig,
   createCardAPI,
   createMediaLoadedInfo,
@@ -13,7 +14,7 @@ import {
 
 // @vitest-environment jsdom
 describe('CallManager', () => {
-  it('should expose lock and end-on-view-change state from the active call', async () => {
+  it('should expose lock state and prepare major view changes from the active call', async () => {
     const api = createCardAPI();
     const mediaPlayerController = mock<MediaPlayerController>();
     const microphoneState = {
@@ -44,6 +45,9 @@ describe('CallManager', () => {
       createStore([
         {
           cameraID: 'camera-1',
+          capabilities: createCapabilities({
+            '2-way-audio': true,
+          }),
           config: createCameraConfig({
             live_provider: 'go2rtc',
             call: {
@@ -58,14 +62,28 @@ describe('CallManager', () => {
     );
 
     const manager = new CallManager(api);
+    const nextView = createView({
+      camera: 'camera-2',
+      view: 'live',
+      context: {
+        call: {
+          camera: 'camera-1',
+          state: 'in_call',
+          stream: 'doorbell',
+        },
+      },
+    });
 
     expect(manager.isNavigationLocked()).toBe(false);
-    expect(manager.shouldEndOnViewChange()).toBe(false);
+    expect(
+      manager.prepareViewChange(nextView.clone(), {
+        majorMediaChange: true,
+      }),
+    ).toBe(false);
 
     await manager.startCall();
 
     expect(manager.isNavigationLocked()).toBe(false);
-    expect(manager.shouldEndOnViewChange()).toBe(true);
 
     await manager.onMediaLoaded(
       createMediaLoadedInfo({ mediaPlayerController }),
@@ -73,6 +91,12 @@ describe('CallManager', () => {
     );
 
     expect(manager.isNavigationLocked()).toBe(true);
+    expect(
+      manager.prepareViewChange(nextView, {
+        majorMediaChange: true,
+      }),
+    ).toBe(true);
+    expect(nextView.context?.call).toBeUndefined();
   });
 
   it('should not lock navigation when live microphone lock_navigation is disabled', async () => {
@@ -126,7 +150,24 @@ describe('CallManager', () => {
       'camera-1',
     );
 
-    expect(manager.shouldEndOnViewChange()).toBe(true);
+    const nextView = createView({
+      camera: 'camera-2',
+      view: 'live',
+      context: {
+        call: {
+          camera: 'camera-1',
+          state: 'in_call',
+          stream: 'doorbell',
+        },
+      },
+    });
+
+    expect(
+      manager.prepareViewChange(nextView, {
+        majorMediaChange: true,
+      }),
+    ).toBe(true);
+    expect(nextView.context?.call).toBeUndefined();
     expect(manager.isNavigationLocked()).toBe(false);
   });
 
@@ -763,5 +804,4 @@ describe('CallManager', () => {
     expect(manager.getState().state).toBe('idle');
     expect(api.getMessageManager().setMessageIfHigherPriority).not.toBeCalled();
   });
-
 });

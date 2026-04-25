@@ -27,7 +27,9 @@ describe('createMediaLoadedInfo', () => {
     Object.defineProperty(img, 'naturalWidth', { value: 10 });
     Object.defineProperty(img, 'naturalHeight', { value: 20 });
 
-    expect(createMediaLoadedInfo(img, { ...options, cameraID: 'camera.office' })).toEqual({
+    expect(
+      createMediaLoadedInfo(img, { ...options, cameraID: 'camera.office' }),
+    ).toEqual({
       width: 10,
       height: 20,
       ...options,

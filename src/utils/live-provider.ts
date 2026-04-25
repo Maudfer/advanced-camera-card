@@ -22,6 +22,12 @@ export const getResolvedLiveProvider = (
   return config?.live_provider ?? 'image';
 };
 
+export const configuredLiveProviderSupports2WayAudio = (
+  config: CameraConfig | undefined,
+): boolean => {
+  return getResolvedLiveProvider(config) === 'go2rtc';
+};
+
 export const liveProviderSupports2WayAudio = async (
   hass: HomeAssistant,
   config: CameraConfig,
@@ -29,7 +35,7 @@ export const liveProviderSupports2WayAudio = async (
   go2rtcMetadataEndpoint?: Endpoint | null,
   proxyConfig?: EnabledProxyConfig,
 ): Promise<boolean> => {
-  if (getResolvedLiveProvider(config) !== 'go2rtc') {
+  if (!configuredLiveProviderSupports2WayAudio(config)) {
     return false;
   }
 

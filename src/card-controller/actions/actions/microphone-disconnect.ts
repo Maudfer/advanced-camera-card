@@ -6,6 +6,10 @@ export class MicrophoneDisconnectAction extends AdvancedCameraCardAction<General
   public async execute(api: CardActionsAPI): Promise<void> {
     await super.execute(api);
 
+    if (!api.getCallManager().isActive()) {
+      return;
+    }
+
     api.getMicrophoneManager().disconnect();
   }
 }

@@ -45,9 +45,7 @@ describe('AdvancedCameraCardGo2RTC', () => {
     document.body.appendChild(element);
     await element.updateComplete;
 
-    expect(
-      element.shadowRoot?.querySelector('advanced-camera-card-message'),
-    ).toBeNull();
+    expect(element.shadowRoot?.querySelector('advanced-camera-card-message')).toBeNull();
   });
 
   it('should render a no-endpoint error when endpoints are explicitly missing', async () => {

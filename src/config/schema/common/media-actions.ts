@@ -17,7 +17,6 @@ export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number
 export type AutoPauseCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
 export type AutoMuteCondition = (typeof MEDIA_MUTE_CONDITIONS)[number];
 export type AutoUnmuteCondition = (typeof MEDIA_UNMUTE_CONDITIONS)[number];
-export type AutoMicrophoneCondition =
-  (typeof MICROPHONE_ACTION_CONDITIONS)[number];
+export type AutoMicrophoneCondition = (typeof MICROPHONE_ACTION_CONDITIONS)[number];
 
 export type LazyUnloadCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];

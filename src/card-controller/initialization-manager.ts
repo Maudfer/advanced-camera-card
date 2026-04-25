@@ -8,7 +8,6 @@ export enum InitializationAspect {
   LANGUAGES = 'languages',
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   CAMERAS = 'cameras',
-  MICROPHONE_CONNECT = 'microphone-connect',
   PROBLEMS = 'problems',
   VIEW = 'view',
 

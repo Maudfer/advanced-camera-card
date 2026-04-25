@@ -432,7 +432,7 @@
       "microphone": {
         "auto_mute": "Automatically mute microphone",
         "auto_unmute": "Automatically unmute microphone",
-        "always_connected": "Always keep the microphone connected",
+        "always_connected": "Automatically start a call when live view loads",
         "disconnect_seconds": "Seconds before disconnecting microphone (0=never)",
         "editor_label": "Microphone",
         "lock_navigation": "Lock navigation while the microphone is active",

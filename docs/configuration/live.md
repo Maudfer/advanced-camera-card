@@ -177,11 +177,11 @@ live:
   microphone:
 ```
 
-| Option                               | Default | Description                                                                                                                                                                                                                                                             |
-| ------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `always_connected`                   | `false` | Whether or not to keep the microphone stream continually connected while the card is running, or only when microphone is used (default). In the latter case there'll be a connection reset when the microphone is first used -- using this option can avoid that reset. |
-| `disconnect_seconds`                 | `90`    | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.                                                                                                             |
-| `mute_after_microphone_mute_seconds` | `60`    | The number of seconds after the microphone mutes to automatically mute the inbound audio when `live.auto_mute` includes `microphone`.                                                                                                                                   |
+| Option                               | Default | Description                                                                                                                                                                               |
+| ------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `always_connected`                   | `false` | Whether or not to automatically start a call when an eligible live view loads. This uses the normal call flow immediately instead of waiting for the user to tap the `call` button later. |
+| `disconnect_seconds`                 | `90`    | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.                               |
+| `mute_after_microphone_mute_seconds` | `60`    | The number of seconds after the microphone mutes to automatically mute the inbound audio when `live.auto_mute` includes `microphone`.                                                     |
 
 See [Using 2-way audio](../usage/2-way-audio.md) for more information about the very particular requirements that must be followed for 2-way audio to work.
 
