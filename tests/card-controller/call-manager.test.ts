@@ -12,6 +12,29 @@ import {
   createView,
 } from '../test-utils';
 
+const createCallStore = (options?: {
+  config?: Record<string, unknown>;
+  capabilities?: ReturnType<typeof createCapabilities> | null;
+}) =>
+  createStore([
+    {
+      cameraID: 'camera-1',
+      capabilities:
+        options?.capabilities === undefined
+          ? createCapabilities({
+              '2-way-audio': true,
+            })
+          : options.capabilities,
+      config: createCameraConfig({
+        live_provider: 'go2rtc',
+        call: {
+          stream: 'doorbell',
+        },
+        ...options?.config,
+      }),
+    },
+  ]);
+
 // @vitest-environment jsdom
 describe('CallManager', () => {
   it('should expose lock state and prepare major view changes from the active call', async () => {
@@ -126,19 +149,7 @@ describe('CallManager', () => {
         },
       }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -177,19 +188,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -277,23 +276,17 @@ describe('CallManager', () => {
     expect(manager.getActiveCameraConfigForTest()).toBeNull();
   });
 
-  it('should reject unsupported live providers', async () => {
+  it('should reject cameras without 2-way audio capability', async () => {
     const api = createCardAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'ha',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
+      createCallStore({
+        capabilities: createCapabilities({
+          '2-way-audio': false,
+        }),
+      }),
     );
 
     const manager = new CallManager(api);
@@ -309,19 +302,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
 
     const manager = new CallManager(api);
 
@@ -352,15 +333,11 @@ describe('CallManager', () => {
       createView({ camera: 'camera-1', view: 'live' }),
     );
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: {
-            live_provider: 'go2rtc',
-            call: {},
-          } as never,
+      createCallStore({
+        config: {
+          call: {},
         },
-      ]),
+      }),
     );
 
     const manager = new CallManager(api);
@@ -386,19 +363,7 @@ describe('CallManager', () => {
         },
       }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
 
     const manager = new CallManager(api);
     await expect(manager.startCall()).resolves.toBe(false);
@@ -416,19 +381,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -457,19 +410,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -515,19 +456,7 @@ describe('CallManager', () => {
         },
       }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -549,19 +478,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -592,19 +509,7 @@ describe('CallManager', () => {
         },
       }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -700,19 +605,7 @@ describe('CallManager', () => {
     vi.mocked(activeAPI.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(activeAPI.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(activeAPI.getCameraManager().getStore).mockReturnValue(createCallStore());
 
     const activeManager = new CallManager(activeAPI);
     await activeManager.startCall();
@@ -730,19 +623,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );
@@ -777,19 +658,7 @@ describe('CallManager', () => {
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({ camera: 'camera-1', view: 'live' }),
     );
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera-1',
-          config: createCameraConfig({
-            live_provider: 'go2rtc',
-            call: {
-              stream: 'doorbell',
-            },
-          }),
-        },
-      ]),
-    );
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(createCallStore());
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
       createMediaLoadedInfo({ mediaPlayerController }),
     );

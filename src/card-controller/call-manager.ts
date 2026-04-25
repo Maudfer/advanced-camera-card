@@ -1,7 +1,6 @@
 import { CameraConfig } from '../config/schema/cameras';
 import { localize } from '../localize/localize';
 import { MediaLoadedInfo } from '../types';
-import { configuredLiveProviderSupports2WayAudio } from '../utils/live-provider';
 import { shouldLockNavigation } from '../utils/microphone';
 import { hasSubstream } from '../utils/substream';
 import { CallViewState } from '../utils/call';
@@ -97,7 +96,7 @@ export class CallManager {
       return await this._fail(localize('error.call_no_stream'));
     }
 
-    if (!configuredLiveProviderSupports2WayAudio(cameraConfig)) {
+    if (!this._activeCameraSupports2WayAudio()) {
       return await this._fail(localize('error.call_provider_unsupported'));
     }
 
@@ -201,6 +200,20 @@ export class CallManager {
       return null;
     }
     return this._api.getCameraManager().getStore().getCameraConfig(view.camera);
+  }
+
+  protected _activeCameraSupports2WayAudio(): boolean {
+    const view = this._api.getViewManager().getView();
+    if (!view) {
+      return false;
+    }
+
+    return !!this._api
+      .getCameraManager()
+      .getStore()
+      .getCamera(view.camera)
+      ?.getCapabilities()
+      ?.has('2-way-audio');
   }
 
   protected _setCallContext(context: {
